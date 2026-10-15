@@ -26,3 +26,34 @@ jobs:
       # The end-to-end tests also build every example with the runner's C
       # compiler and compare native output with the interpreter.
       - run: cargo test --all
+
+  kernel:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: riscv64gc-unknown-none-elf
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            .
+            kernel
+      - name: Install QEMU and OpenSBI
+        run: sudo apt-get update && sudo apt-get install -y qemu-system-misc opensbi
+      - run: cargo fmt --check
+        working-directory: kernel
+      - run: cargo clippy -- -D warnings
+        working-directory: kernel
+      # Boots every language with every demo fault and checks the reports.
+      - run: cargo xtask test
+      - name: Panic screen screenshots
+        run: |
+          cargo xtask screenshot --lang hi --demo readonly -o shots/panic-hi.png
+          cargo xtask screenshot --lang ta --demo load -o shots/panic-ta.png
+          cargo xtask screenshot --lang en --demo panic -o shots/panic-en.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: panic-screens
+          path: shots/
