@@ -43,6 +43,8 @@ jobs:
       - name: Install OmniLang
         run: |
           brew tap avkad3/omnilang https://github.com/${{ github.repository }}
+          # Homebrew loads formulae from third-party taps only once trusted.
+          brew trust avkad3/omnilang
           brew install omnilang
       - name: Use it
         run: |

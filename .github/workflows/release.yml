@@ -128,6 +128,6 @@ jobs:
           Or install with a package manager:
 
           - Windows (Scoop): \`scoop bucket add omnilang https://github.com/avkad3/Omnilang\` then \`scoop install omnilang\`
-          - macOS / Linux (Homebrew): \`brew tap avkad3/omnilang https://github.com/avkad3/Omnilang\` then \`brew install omnilang\`
+          - macOS / Linux (Homebrew): \`brew tap avkad3/omnilang https://github.com/avkad3/Omnilang\` then \`brew trust avkad3/omnilang\` and \`brew install omnilang\`
           NOTES
           gh release create "$GITHUB_REF_NAME" assets/* --title "OmniLang $GITHUB_REF_NAME" --notes-file notes.md

@@ -54,6 +54,7 @@ scoop install omnilang
 
 # macOS / Linux (Homebrew)
 brew tap avkad3/omnilang https://github.com/avkad3/Omnilang
+brew trust avkad3/omnilang      # Homebrew asks you to trust third-party taps
 brew install omnilang
 ```
 
