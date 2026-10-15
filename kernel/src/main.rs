@@ -6,6 +6,7 @@
 
 mod bootargs;
 mod font;
+mod mm;
 mod ramfb;
 mod report;
 mod sbi;
@@ -58,6 +59,9 @@ extern "C" fn kmain(hart_id: usize, dtb: usize) -> ! {
         messages::LANGS[lang]
     );
 
+    mm::init(args.ram.0, args.ram.1);
+    println!("[omni] paging on: {} MiB of RAM, kernel sections protected", args.ram.1 >> 20);
+
     match ramfb::init() {
         Some(fb) => {
             screen::boot(fb, lang);
@@ -92,13 +96,15 @@ fn trigger(demo: Demo) -> ! {
     unsafe {
         match demo {
             Demo::Illegal => asm!("unimp"),
-            // Nothing is mapped at address 0 on the virt machine.
+            // Address 0 is never mapped.
             Demo::Load => {
                 core::ptr::read_volatile(core::ptr::null::<u64>());
             }
             Demo::Store => core::ptr::write_volatile(core::ptr::null_mut::<u64>(), 0xdead),
             // Atomic operations must be naturally aligned; firmware does not
             // emulate misaligned atomics, so this reaches the kernel.
+            // Kernel code is mapped read/execute only.
+            Demo::ReadOnly => core::ptr::write_volatile(trigger as *const () as *mut u32, 0),
             Demo::Misaligned => {
                 let word = 0x8020_0001usize as *mut u32;
                 asm!("amoadd.w zero, zero, ({})", in(reg) word);

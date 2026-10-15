@@ -129,6 +129,7 @@ extern "C" fn trap_handler(frame: &mut TrapFrame) {
         1 | 5 => Cause::LoadAccess,
         7 => Cause::StoreAccess,
         0 | 4 | 6 => Cause::Misaligned,
+        15 if crate::mm::is_read_only(stval) => Cause::WriteProtected,
         12 | 13 | 15 => Cause::PageFault,
         other => Cause::Unknown(other),
     };

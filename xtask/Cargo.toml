@@ -5,3 +5,6 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish = false
+
+[dependencies]
+toml = "0.8"

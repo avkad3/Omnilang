@@ -8,17 +8,25 @@ SECTIONS
     . = 0x80200000;
     __kernel_start = .;
 
-    .text : {
+    /* Sections are page-aligned so each can get its own permissions. */
+    .text : ALIGN(4096) {
+        __text_start = .;
         *(.text.entry)
         *(.text .text.*)
+        . = ALIGN(4096);
+        __text_end = .;
     }
 
-    .rodata : ALIGN(8) {
+    .rodata : ALIGN(4096) {
+        __rodata_start = .;
         *(.rodata .rodata.*)
         *(.srodata .srodata.*)
+        . = ALIGN(4096);
+        __rodata_end = .;
     }
 
-    .data : ALIGN(8) {
+    .data : ALIGN(4096) {
+        __data_start = .;
         *(.data .data.*)
         *(.sdata .sdata.*)
     }

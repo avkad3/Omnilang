@@ -68,6 +68,11 @@ en = "Page fault: address is not mapped"
 hi = "पेज त्रुटि: पता मैप नहीं है"
 ta = "பக்கப் பிழை: முகவரி வரைபடமாக்கப்படவில்லை"
 
+[cause_write_protected]
+en = "Write to read-only memory"
+hi = "केवल पढ़ने योग्य मेमोरी में लिखने का प्रयास"
+ta = "படிக்க மட்டுமான நினைவகத்தில் எழுத முயற்சி"
+
 [cause_kernel_bug]
 en = "Kernel bug (a check failed)"
 hi = "कर्नेल में बग (एक जाँच विफल हुई)"

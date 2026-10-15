@@ -3,6 +3,7 @@
 //!   cargo xtask build      [--release]
 //!   cargo xtask run        [--lang en|hi|ta] [--demo illegal|load|store|misaligned|panic] [--headless]
 //!   cargo xtask screenshot [--lang ..] [--demo ..] [-o file.png]
+//!   cargo xtask test       [--release]   boot every language × fault and check the reports
 
 use std::env;
 use std::io::{BufRead, BufReader, Write};
@@ -152,6 +153,7 @@ fn main() {
         }
         "run" => exit(run(&o).code().unwrap_or(1)),
         "screenshot" => screenshot(&o),
+        "test" => test(&o),
         other => fail(format!("unknown command '{other}'")),
     }
 }
@@ -239,4 +241,91 @@ fn qmp_screendump(port: u16, out: &Path) -> std::io::Result<()> {
     )?;
     qmp_reply(&mut reader)?;
     Ok(())
+}
+
+/// Demo fault → the messages.toml key of the cause the kernel must report.
+const FAULTS: [(&str, &str); 5] = [
+    ("illegal", "cause_illegal_instruction"),
+    ("load", "cause_page_fault"),
+    ("readonly", "cause_write_protected"),
+    ("misaligned", "cause_misaligned"),
+    ("panic", "cause_kernel_bug"),
+];
+
+/// Boots the kernel headless once per language and fault, checking the
+/// exit status and that the serial report names the right cause in the
+/// right language.
+fn test(o: &Opts) {
+    let kernel = build(o.release);
+    let messages: toml::Table = std::fs::read_to_string(kernel_dir().join("messages.toml"))
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or_else(|| fail("cannot read kernel/messages.toml"));
+    let text = |key: &str, lang: &str| -> String {
+        messages[key][lang]
+            .as_str()
+            .unwrap_or_else(|| fail(format!("{key}.{lang} missing")))
+            .to_string()
+    };
+
+    let mut failures = 0;
+    let mut runs = 0;
+    for lang in ["en", "hi", "ta"] {
+        let mut cases: Vec<(Option<&str>, Option<&str>)> = vec![(None, None)];
+        cases.extend(FAULTS.iter().map(|(d, k)| (Some(*d), Some(*k))));
+        for (demo, cause) in cases {
+            runs += 1;
+            let mut cmdline = format!("lang={lang} exit");
+            if let Some(d) = demo {
+                cmdline.push_str(&format!(" demo={d}"));
+            }
+            let out = qemu_command(&kernel, &cmdline, true)
+                .stdin(Stdio::null())
+                .output()
+                .unwrap_or_else(|e| fail(format!("cannot start QEMU: {e}")));
+            let serial = String::from_utf8_lossy(&out.stdout);
+            let mut problems = Vec::new();
+            let expected_code = if demo.is_some() { 1 } else { 0 };
+            if out.status.code() != Some(expected_code) {
+                problems.push(format!(
+                    "exit status {:?}, expected {expected_code}",
+                    out.status.code()
+                ));
+            }
+            if !serial.contains(&text("boot", lang)) {
+                problems.push("boot message missing".into());
+            }
+            if let Some(key) = cause {
+                let want = format!("{} {}", text("cause_label", lang), text(key, lang));
+                if !serial.contains(&want) {
+                    problems.push(format!("expected `{want}` in the report"));
+                }
+                if !serial.contains("[omni] panic screen drawn") {
+                    problems.push("panic screen not drawn".into());
+                }
+            }
+            let label = format!("lang={lang} demo={}", demo.unwrap_or("none"));
+            if problems.is_empty() {
+                println!("ok   {label}");
+            } else {
+                failures += 1;
+                println!("FAIL {label}: {}", problems.join("; "));
+                for line in serial
+                    .lines()
+                    .filter(|l| !l.trim().is_empty())
+                    .rev()
+                    .take(12)
+                    .collect::<Vec<_>>()
+                    .iter()
+                    .rev()
+                {
+                    println!("     | {line}");
+                }
+            }
+        }
+    }
+    println!("\n{} of {runs} boots passed", runs - failures);
+    if failures > 0 {
+        exit(1);
+    }
 }

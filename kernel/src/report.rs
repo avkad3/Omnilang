@@ -37,6 +37,7 @@ pub enum Cause {
     StoreAccess,
     Misaligned,
     PageFault,
+    WriteProtected,
     KernelBug,
     /// Raw `scause` value.
     Unknown(usize),
@@ -50,6 +51,7 @@ impl Cause {
             Cause::StoreAccess => &m::CAUSE_STORE_ACCESS,
             Cause::Misaligned => &m::CAUSE_MISALIGNED,
             Cause::PageFault => &m::CAUSE_PAGE_FAULT,
+            Cause::WriteProtected => &m::CAUSE_WRITE_PROTECTED,
             Cause::KernelBug => &m::CAUSE_KERNEL_BUG,
             Cause::Unknown(_) => &m::CAUSE_UNKNOWN,
         }
@@ -62,6 +64,7 @@ impl Cause {
             Cause::StoreAccess => &text::CAUSE_STORE_ACCESS,
             Cause::Misaligned => &text::CAUSE_MISALIGNED,
             Cause::PageFault => &text::CAUSE_PAGE_FAULT,
+            Cause::WriteProtected => &text::CAUSE_WRITE_PROTECTED,
             Cause::KernelBug => &text::CAUSE_KERNEL_BUG,
             Cause::Unknown(_) => &text::CAUSE_UNKNOWN,
         }

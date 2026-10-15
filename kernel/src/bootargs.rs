@@ -10,6 +10,8 @@ pub struct BootArgs {
     pub demo: Option<Demo>,
     /// Power off after the panic screen instead of halting (for tests).
     pub exit: bool,
+    /// First RAM region from the device tree: (start, size).
+    pub ram: (usize, usize),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -18,6 +20,7 @@ pub enum Demo {
     Load,
     Store,
     Misaligned,
+    ReadOnly,
     Panic,
 }
 
@@ -27,6 +30,7 @@ impl BootArgs {
             lang: 0,
             demo: None,
             exit: false,
+            ram: (0x8000_0000, 128 << 20),
         };
         for word in cmdline.split_ascii_whitespace() {
             match word.split_once('=') {
@@ -41,6 +45,7 @@ impl BootArgs {
                         "load" => Some(Demo::Load),
                         "store" => Some(Demo::Store),
                         "misaligned" => Some(Demo::Misaligned),
+                        "readonly" => Some(Demo::ReadOnly),
                         "panic" => Some(Demo::Panic),
                         _ => None,
                     }
@@ -57,9 +62,15 @@ impl BootArgs {
     /// # Safety
     /// `dtb` must be the device tree pointer passed in by the firmware.
     pub unsafe fn from_device_tree(dtb: usize) -> BootArgs {
-        let cmdline = fdt::Fdt::from_ptr(dtb as *const u8)
-            .ok()
-            .and_then(|f| f.chosen().bootargs());
-        BootArgs::parse(cmdline.unwrap_or(""))
+        let Ok(tree) = fdt::Fdt::from_ptr(dtb as *const u8) else {
+            return BootArgs::parse("");
+        };
+        let mut args = BootArgs::parse(tree.chosen().bootargs().unwrap_or(""));
+        if let Some(region) = tree.memory().regions().next() {
+            if let Some(size) = region.size {
+                args.ram = (region.starting_address as usize, size);
+            }
+        }
+        args
     }
 }
