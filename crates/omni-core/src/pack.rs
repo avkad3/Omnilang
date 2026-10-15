@@ -79,9 +79,18 @@ pub struct Pack {
     pub main: String,
     words: HashMap<Kw, String>,
     positions: HashMap<Kw, Position>,
+    /// Romanized spellings of each keyword, for editor completion.
+    aliases: HashMap<Kw, Vec<String>>,
+    /// Romanized spellings of the entry-point name.
+    pub main_aliases: Vec<String>,
 }
 
 impl Pack {
+    /// Romanized spellings of `kw` (empty for packs written in Latin).
+    pub fn aliases(&self, kw: Kw) -> &[String] {
+        self.aliases.get(&kw).map_or(&[], Vec::as_slice)
+    }
+
     pub fn word(&self, kw: Kw) -> Option<&str> {
         self.words.get(&kw).map(String::as_str)
     }
@@ -108,6 +117,8 @@ struct RawPack {
     pack: RawMeta,
     keywords: HashMap<String, String>,
     statements: HashMap<String, RawStatement>,
+    #[serde(default)]
+    romanized: HashMap<String, Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -185,6 +196,22 @@ impl Pack {
             }
         };
 
+        let mut aliases = HashMap::new();
+        let mut main_aliases = Vec::new();
+        for (key, spellings) in raw.romanized {
+            if key == "main" {
+                main_aliases = spellings;
+                continue;
+            }
+            let kw = Kw::REQUIRED
+                .iter()
+                .chain(Kw::STATEMENTS.iter())
+                .find(|(_, k)| *k == key)
+                .map(|(kw, _)| *kw)
+                .ok_or_else(|| err(format!("romanized: unknown keyword '{key}'")))?;
+            aliases.insert(kw, spellings);
+        }
+
         Ok(Pack {
             code: raw.pack.code,
             name: raw.pack.name,
@@ -194,6 +221,8 @@ impl Pack {
             main: normalize(main.trim()),
             words,
             positions,
+            aliases,
+            main_aliases,
         })
     }
 }
@@ -312,6 +341,20 @@ mod tests {
         assert_eq!(p.get("en").unwrap().position(Kw::Return), Position::Prefix);
         assert_eq!(p.get("hi").unwrap().position(Kw::Return), Position::Postfix);
         assert_eq!(p.get("ta").unwrap().position(Kw::If), Position::Postfix);
+    }
+
+    #[test]
+    fn romanized_aliases() {
+        let p = Packs::builtin();
+        assert!(p
+            .get("hi")
+            .unwrap()
+            .aliases(Kw::Return)
+            .iter()
+            .any(|a| a == "lautao"));
+        assert!(p.get("ta").unwrap().aliases(Kw::If).iter().any(|a| a == "endral"));
+        assert!(p.get("en").unwrap().aliases(Kw::If).is_empty());
+        assert_eq!(p.get("hi").unwrap().main_aliases, ["mukhya", "mukhy"]);
     }
 
     #[test]

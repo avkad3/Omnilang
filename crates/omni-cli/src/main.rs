@@ -201,6 +201,7 @@ fn cmd_view(o: &Opts) -> Result<ExitCode, Failure> {
         packs: &all,
         glossary: &u.glossary,
         native_digits: o.native_digits,
+        translate_names: true,
     };
     print!("{}", render(&u.program, &opts));
     Ok(ExitCode::SUCCESS)

@@ -31,3 +31,24 @@ if = { word = "என்றால்", position = "postfix" }
 while = { word = "இருக்கும்வரை", position = "postfix" }   # "as long as … holds"
 return = { word = "திருப்பு", position = "postfix" }
 print = { word = "அச்சிடு", position = "postfix" }
+
+# Common romanized spellings, so editors can complete a keyword from what
+# people actually type on a Latin keyboard.
+[romanized]
+fn = ["seyalpaadu", "seyalpadu"]
+let = ["nilai"]
+var = ["maari", "maRi", "mari"]
+else = ["illaiyenil", "illaiyenin"]
+true = ["mei", "mey"]
+false = ["poi", "poy"]
+and = ["matrum", "maRRum"]
+or = ["allathu", "alladhu"]
+not = ["alla"]
+int = ["muzhuen", "muzhuyen", "muluen"]
+bool = ["tharukkam", "tarukkam"]
+str = ["saram", "charam"]
+main = ["muthanmai", "mudhanmai"]
+if = ["endraal", "endral", "enral"]
+while = ["irukkumvarai", "irukkumvarei"]
+return = ["thiruppu", "tiruppu"]
+print = ["achchidu", "achidu", "acchidu"]

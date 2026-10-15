@@ -17,6 +17,9 @@ pub struct ViewOptions<'a> {
     pub glossary: &'a Glossary,
     /// Write numbers in the pack's native digits (e.g. Devanagari ०-९).
     pub native_digits: bool,
+    /// Translate identifiers (glossary terms, the entry point). Off when
+    /// formatting, which must never rename anything.
+    pub translate_names: bool,
 }
 
 const INDENT: &str = "    ";
@@ -53,6 +56,9 @@ impl Renderer<'_> {
     }
 
     fn name(&self, name: &str) -> String {
+        if !self.o.translate_names {
+            return name.to_string();
+        }
         if self.o.packs.is_main(name) {
             return self.o.pack.main.clone();
         }
@@ -324,6 +330,7 @@ fn main() {
             packs: &packs,
             glossary,
             native_digits: false,
+            translate_names: true,
         };
         render(&p.program, &opts)
     }
@@ -374,6 +381,7 @@ fn main() {
             packs: &packs,
             glossary: &g,
             native_digits: true,
+            translate_names: true,
         };
         assert!(render(&p.program, &opts).contains("२०२६ छापो।"));
     }

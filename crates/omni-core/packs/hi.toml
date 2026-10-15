@@ -31,3 +31,25 @@ if = { word = "अगर", position = "prefix" }
 while = { word = "जबतक", position = "prefix" }
 return = { word = "लौटाओ", position = "postfix" }
 print = { word = "छापो", position = "postfix" }
+
+# Common romanized spellings, so editors can complete a keyword from what
+# people actually type on a Latin keyboard.
+[romanized]
+fn = ["kaarya", "karya"]
+let = ["sthir"]
+var = ["char"]
+else = ["varanaa", "varna"]
+then = ["to"]
+true = ["satya"]
+false = ["asatya"]
+and = ["aur"]
+or = ["yaa", "ya"]
+not = ["nahiin", "nahin", "nahi"]
+int = ["poornaank", "purnank", "purnaank"]
+bool = ["taarkik", "tarkik"]
+str = ["paath", "path"]
+main = ["mukhya", "mukhy"]
+if = ["agar"]
+while = ["jabatak", "jabtak"]
+return = ["lautaao", "lautao", "lautaa"]
+print = ["chhaapo", "chhapo", "chaapo", "chapo"]
