@@ -13,4 +13,5 @@ pub mod lexer;
 pub mod pack;
 pub mod parser;
 pub mod security;
+pub mod translit;
 pub mod view;

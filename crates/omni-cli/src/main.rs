@@ -24,6 +24,7 @@ USAGE:
     omni c     <file> [-o out.c]      translate to C
     omni build <file> [-o program]    compile to a native executable (needs gcc or clang)
     omni packs                        list language packs and their keywords
+    omni translit --to <hi|ta> <text> romanized typing: "agar" -> "अगर"
 
 OPTIONS:
     --lang <en|hi|ta>     language for errors and printed output (default: $OMNI_LANG or en)
@@ -316,6 +317,16 @@ fn cmd_packs() -> ExitCode {
     ExitCode::SUCCESS
 }
 
+fn cmd_translit(o: &Opts) -> Result<ExitCode, Failure> {
+    use omni_core::translit::{transliterate, Script};
+    let to = o.to.as_deref().ok_or("translit needs --to <hi|ta>")?;
+    let script = Script::for_lang(to).ok_or(format!("no transliteration for '{to}' (use hi or ta)"))?;
+    // The text is the positional argument (parsed into `file`).
+    let text = o.file.as_ref().ok_or("translit needs the text to convert")?;
+    println!("{}", transliterate(&text.to_string_lossy(), script));
+    Ok(ExitCode::SUCCESS)
+}
+
 fn main() -> ExitCode {
     let o = match parse_args() {
         Ok(o) => o,
@@ -331,6 +342,7 @@ fn main() -> ExitCode {
         "c" => cmd_c(&o),
         "build" => cmd_build(&o),
         "packs" => return cmd_packs(),
+        "translit" => cmd_translit(&o),
         "help" => {
             print!("{USAGE}");
             return ExitCode::SUCCESS;
