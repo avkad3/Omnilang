@@ -179,8 +179,7 @@ impl<'a> Lexer<'a> {
                                 c.to_string()
                             };
                             self.error(
-                                Diagnostic::error("E0101", Span::new(start, self.pos))
-                                    .arg("ch", shown),
+                                Diagnostic::error("E0101", Span::new(start, self.pos)).arg("ch", shown),
                             );
                         }
                         continue;
@@ -197,9 +196,7 @@ impl<'a> Lexer<'a> {
     }
 
     fn comment(&mut self, start: usize) {
-        let end = self.src[start..]
-            .find('\n')
-            .map_or(self.src.len(), |i| start + i);
+        let end = self.src[start..].find('\n').map_or(self.src.len(), |i| start + i);
         let text = self.src[start + 2..end].trim_end_matches('\r').to_string();
         self.pos = end;
         self.out.comments.push(Comment {

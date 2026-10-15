@@ -73,12 +73,7 @@ fn scratch(name: &str) -> PathBuf {
 #[test]
 fn examples_produce_recorded_output() {
     for ex in examples() {
-        assert_eq!(
-            run(&ex, &glossary_args(&ex)),
-            expected(&ex),
-            "{}",
-            ex.display()
-        );
+        assert_eq!(run(&ex, &glossary_args(&ex)), expected(&ex), "{}", ex.display());
     }
 }
 

@@ -295,10 +295,7 @@ impl<'a> Interpreter<'a> {
                 for a in args {
                     values.push(self.expr(a)?);
                 }
-                let f = *self
-                    .funcs
-                    .get(&self.glossary.key(&name.text))
-                    .expect("checked");
+                let f = *self.funcs.get(&self.glossary.key(&name.text)).expect("checked");
                 self.call(f, values, e.span)?
             }
         })

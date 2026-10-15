@@ -130,8 +130,7 @@ pub fn check_confusables(idents: &[(String, Span)], packs: &Packs) -> Vec<Diagno
 fn all_words(p: &crate::pack::Pack) -> Vec<String> {
     use crate::pack::Kw::*;
     [
-        Fn, Let, Var, Else, Then, True, False, And, Or, Not, Int, Bool, Str, If, While, Return,
-        Print,
+        Fn, Let, Var, Else, Then, True, False, And, Or, Not, Int, Bool, Str, If, While, Return, Print,
     ]
     .into_iter()
     .filter_map(|k| p.word(k).map(str::to_string))
@@ -154,10 +153,7 @@ mod tests {
 
     #[test]
     fn invisible_characters_are_rejected_but_leading_bom_is_fine() {
-        assert_eq!(
-            codes(&scan_source("\u{FEFF}let x = 1;")),
-            Vec::<&str>::new()
-        );
+        assert_eq!(codes(&scan_source("\u{FEFF}let x = 1;")), Vec::<&str>::new());
         assert_eq!(codes(&scan_source("let a\u{200B}b = 1;")), ["E0002"]);
     }
 
@@ -166,10 +162,7 @@ mod tests {
         // Devanagari "क्‍ष" (ka + virama + ZWJ + ssa) is legitimate.
         assert!(check_identifier("क\u{94D}\u{200D}ष", Span::default()).is_empty());
         // ZWJ between two Latin letters is an invisible trick.
-        assert_eq!(
-            codes(&check_identifier("a\u{200D}b", Span::default())),
-            ["E0003"]
-        );
+        assert_eq!(codes(&check_identifier("a\u{200D}b", Span::default())), ["E0003"]);
     }
 
     #[test]
@@ -191,10 +184,7 @@ mod tests {
         let packs = Packs::builtin();
         let ids = vec![
             ("scope".to_string(), Span::default()),
-            (
-                "\u{455}\u{441}\u{43E}\u{440}\u{435}".to_string(),
-                Span::default(),
-            ), // Cyrillic "ѕсоре"
+            ("\u{455}\u{441}\u{43E}\u{440}\u{435}".to_string(), Span::default()), // Cyrillic "ѕсоре"
         ];
         assert_eq!(codes(&check_confusables(&ids, &packs)), ["W0005"]);
     }

@@ -41,12 +41,7 @@ struct Checker<'a> {
 
 /// Checks `program`. With `require_entry`, exactly one function must be
 /// named `main` (in any active language) and take no arguments.
-pub fn check(
-    program: &Program,
-    packs: &Packs,
-    glossary: &Glossary,
-    require_entry: bool,
-) -> Checked {
+pub fn check(program: &Program, packs: &Packs, glossary: &Glossary, require_entry: bool) -> Checked {
     let mut c = Checker {
         glossary,
         funcs: HashMap::new(),
@@ -82,9 +77,8 @@ pub fn check(
         match mains.as_slice() {
             [] => {
                 let names: Vec<String> = packs.iter().map(|p| format!("'{}'", p.main)).collect();
-                c.diags.push(
-                    Diagnostic::error("E0309", Span::default()).arg("names", names.join(" / ")),
-                );
+                c.diags
+                    .push(Diagnostic::error("E0309", Span::default()).arg("names", names.join(" / ")));
             }
             [i] => {
                 let f = &program.funcs[*i];
@@ -201,9 +195,8 @@ impl Checker<'_> {
                     (None, None) => Type::Int, // error already reported
                 };
                 if declared == Type::Unit {
-                    self.diags.push(
-                        Diagnostic::error("E0312", value.span).arg("found", Type::Unit.phrase()),
-                    );
+                    self.diags
+                        .push(Diagnostic::error("E0312", value.span).arg("found", Type::Unit.phrase()));
                 }
                 self.declare(name, declared, *mutable);
                 false
@@ -251,11 +244,8 @@ impl Checker<'_> {
                 };
                 if let Some(f) = found {
                     if f != self.ret {
-                        self.diags.push(mismatch(
-                            value.as_ref().map_or(s.span, |v| v.span),
-                            self.ret,
-                            f,
-                        ));
+                        self.diags
+                            .push(mismatch(value.as_ref().map_or(s.span, |v| v.span), self.ret, f));
                     }
                 }
                 true
@@ -263,9 +253,8 @@ impl Checker<'_> {
             StmtKind::Print(values) => {
                 for v in values {
                     if let Some(Type::Unit) = self.expr(v) {
-                        self.diags.push(
-                            Diagnostic::error("E0312", v.span).arg("found", Type::Unit.phrase()),
-                        );
+                        self.diags
+                            .push(Diagnostic::error("E0312", v.span).arg("found", Type::Unit.phrase()));
                     }
                 }
                 false
@@ -330,9 +319,7 @@ impl Checker<'_> {
                         (lt == Type::Int && rt == Type::Int).then_some(Type::Bool)
                     }
                     BinOp::Eq | BinOp::Ne => (lt == rt && lt != Type::Unit).then_some(Type::Bool),
-                    BinOp::And | BinOp::Or => {
-                        (lt == Type::Bool && rt == Type::Bool).then_some(Type::Bool)
-                    }
+                    BinOp::And | BinOp::Or => (lt == Type::Bool && rt == Type::Bool).then_some(Type::Bool),
                 };
                 if result.is_none() {
                     self.diags.push(bad());
@@ -397,17 +384,16 @@ mod tests {
 
     #[test]
     fn a_correct_program_in_each_language() {
-        assert!(diags(
-            "fn add(a: int, b: int) -> int { return a + b; } fn main() { print add(1, 2); }"
-        )
-        .is_empty());
+        assert!(
+            diags("fn add(a: int, b: int) -> int { return a + b; } fn main() { print add(1, 2); }")
+                .is_empty()
+        );
         assert!(diags(
             "कार्य जोड़(क: पूर्णांक, ख: पूर्णांक) -> पूर्णांक { क + ख लौटाओ। } कार्य मुख्य() { जोड़(1, 2) छापो। }"
         )
         .is_empty());
         assert!(
-            diags("செயல்பாடு முதன்மை() { மாறி i = 0; i < 3 இருக்கும்வரை { i = i + 1; } i அச்சிடு; }")
-                .is_empty()
+            diags("செயல்பாடு முதன்மை() { மாறி i = 0; i < 3 இருக்கும்வரை { i = i + 1; } i அச்சிடு; }").is_empty()
         );
     }
 
@@ -441,14 +427,11 @@ mod tests {
             diags("fn f(x: int) -> int { if x > 0 { return 1; } } fn main() {}"),
             ["E0307"]
         );
-        assert!(diags(
-            "fn f(x: int) -> int { if x > 0 { return 1; } else { return 2; } } fn main() {}"
-        )
-        .is_empty());
-        assert_eq!(
-            diags("fn f() -> int { return true; } fn main() {}"),
-            ["E0302"]
+        assert!(
+            diags("fn f(x: int) -> int { if x > 0 { return 1; } else { return 2; } } fn main() {}")
+                .is_empty()
         );
+        assert_eq!(diags("fn f() -> int { return true; } fn main() {}"), ["E0302"]);
     }
 
     #[test]
@@ -462,11 +445,7 @@ mod tests {
     fn glossary_spellings_are_one_variable() {
         let g = Glossary::from_toml("[[term]]\nen = \"count\"\nhi = \"गिनती\"\n").unwrap();
         // Declared in Hindi, updated and printed in English.
-        assert!(diags_with(
-            "fn main() { var गिनती = 1; count = count + 1; print count; }",
-            &g
-        )
-        .is_empty());
+        assert!(diags_with("fn main() { var गिनती = 1; count = count + 1; print count; }", &g).is_empty());
         // Declaring both spellings in one scope is a clash.
         assert_eq!(
             diags_with("fn main() { let count = 1; let गिनती = 2; }", &g),

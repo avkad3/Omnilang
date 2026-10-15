@@ -150,9 +150,7 @@ impl Gen<'_> {
 
     fn prelude(&mut self) {
         let lang = self.o.message_lang;
-        let msg = |code: &'static str| {
-            c_string(&Diagnostic::error(code, Default::default()).message(lang))
-        };
+        let msg = |code: &'static str| c_string(&Diagnostic::error(code, Default::default()).message(lang));
         let (div0, overflow) = (msg("E0401"), msg("E0402"));
         let style = &self.o.style;
         let t = c_string(style.pack.word(Kw::True).unwrap_or("true"));
@@ -301,10 +299,7 @@ static void om_print_str(const char *v) {{ fputs(v, stdout); }}
                 );
                 self.out.push_str(&text);
                 let key = self.o.glossary.key(&name.text);
-                self.scopes
-                    .last_mut()
-                    .expect("inside a block")
-                    .insert(key, t);
+                self.scopes.last_mut().expect("inside a block").insert(key, t);
             }
             StmtKind::Assign { name, value } => {
                 let text = format!("{} = {};", self.name(&name.text), self.expr(value));
@@ -467,10 +462,7 @@ mod tests {
             &Glossary::default(),
         );
         assert!(c.contains("static int64_t om_half(int64_t om_n)"), "{c}");
-        assert!(
-            c.contains("const int64_t om_x = om_half(INT64_C(10));"),
-            "{c}"
-        );
+        assert!(c.contains("const int64_t om_x = om_half(INT64_C(10));"), "{c}");
         assert!(c.contains("bool om_ok = (om_x == INT64_C(5));"), "{c}");
         assert!(c.contains(r#"om_print_str("x");"#), "{c}");
         assert!(c.contains("om_print_bool(om_ok);"), "{c}");
@@ -481,17 +473,8 @@ mod tests {
     #[test]
     fn glossary_spellings_become_one_c_name() {
         let g = Glossary::from_toml("[[term]]\nen = \"count\"\nhi = \"गिनती\"\n").unwrap();
-        let c = emit(
-            "fn main() { var गिनती = 1; count = count + 1; print गिनती; }",
-            &g,
-        );
-        assert!(
-            c.contains("int64_t om_count /* गिनती */ = INT64_C(1);"),
-            "{c}"
-        );
-        assert!(
-            c.contains("om_count = om_add(om_count, INT64_C(1));"),
-            "{c}"
-        );
+        let c = emit("fn main() { var गिनती = 1; count = count + 1; print गिनती; }", &g);
+        assert!(c.contains("int64_t om_count /* गिनती */ = INT64_C(1);"), "{c}");
+        assert!(c.contains("om_count = om_add(om_count, INT64_C(1));"), "{c}");
     }
 }

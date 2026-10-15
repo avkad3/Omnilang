@@ -91,21 +91,15 @@ impl Diagnostic {
             .cloned()
             .unwrap_or_default();
         let (line_no, line_start) = line_of(src, self.span.start);
-        let line_end = src[line_start..]
-            .find('\n')
-            .map_or(src.len(), |i| line_start + i);
+        let line_end = src[line_start..].find('\n').map_or(src.len(), |i| line_start + i);
         let line = src[line_start..line_end].trim_end_matches('\r');
         // Columns are grapheme clusters, so a Devanagari conjunct like "क्ष"
         // counts as one column, the way a reader sees it.
         let col = src[line_start..self.span.start.min(line_end)]
             .graphemes(true)
             .count();
-        let width = src[self.span.start.min(line_end)
-            ..self
-                .span
-                .end
-                .min(line_end)
-                .max(self.span.start.min(line_end))]
+        let width = src
+            [self.span.start.min(line_end)..self.span.end.min(line_end).max(self.span.start.min(line_end))]
             .graphemes(true)
             .count()
             .max(1);
@@ -152,9 +146,7 @@ type Catalog = HashMap<String, HashMap<String, String>>;
 
 fn catalog() -> &'static Catalog {
     static CAT: OnceLock<Catalog> = OnceLock::new();
-    CAT.get_or_init(|| {
-        toml::from_str(include_str!("../messages.toml")).expect("messages.toml is valid")
-    })
+    CAT.get_or_init(|| toml::from_str(include_str!("../messages.toml")).expect("messages.toml is valid"))
 }
 
 /// Languages that have diagnostic translations.
@@ -216,8 +208,7 @@ mod tests {
         let src = "स्थिर क = ख।\n";
         // span of "ख": byte offset after "स्थिर क = "
         let start = src.find('ख').unwrap();
-        let d =
-            Diagnostic::error("E0201", Span::new(start, start + 'ख'.len_utf8())).arg("name", "ख");
+        let d = Diagnostic::error("E0201", Span::new(start, start + 'ख'.len_utf8())).arg("name", "ख");
         let out = d.render(src, "t.om", "en");
         assert!(out.contains("t.om:1:"), "{out}");
         // "स्थिर" is 3 grapheme clusters (स्थि + र ... ) so caret is aligned by

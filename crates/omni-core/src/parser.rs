@@ -616,9 +616,7 @@ mod tests {
         let p = parse_ok("कार्य जोड़(क: पूर्णांक, ख: पूर्णांक) -> पूर्णांक { क + ख लौटाओ। }");
         assert!(matches!(body(&p)[0].kind, StmtKind::Return(Some(_))));
         let p = parse_ok("कार्य मुख्य() { \"नमस्ते\" छापो। }");
-        assert!(
-            matches!(&body(&p)[0].kind, StmtKind::Print(v) if v[0].kind == ExprKind::Str("नमस्ते".into()))
-        );
+        assert!(matches!(&body(&p)[0].kind, StmtKind::Print(v) if v[0].kind == ExprKind::Str("नमस्ते".into())));
     }
 
     #[test]
@@ -672,11 +670,7 @@ mod tests {
     fn keyword_in_the_wrong_position_explains_word_order() {
         let d = parse("कार्य मुख्य() { लौटाओ 5। }", &Packs::builtin()).diagnostics;
         assert_eq!(d[0].code, "E0202");
-        assert!(
-            d[0].message("en").contains("`x लौटाओ`"),
-            "{}",
-            d[0].message("en")
-        );
+        assert!(d[0].message("en").contains("`x लौटाओ`"), "{}", d[0].message("en"));
         assert_eq!(codes("fn main() { 5 return; }"), ["E0203"]);
     }
 

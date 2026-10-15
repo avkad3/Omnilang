@@ -45,10 +45,7 @@ struct Renderer<'a> {
 
 impl Renderer<'_> {
     fn kw(&self, kw: Kw) -> &str {
-        self.o
-            .pack
-            .word(kw)
-            .expect("pack defines every required keyword")
+        self.o.pack.word(kw).expect("pack defines every required keyword")
     }
 
     fn term(&self) -> &str {
@@ -147,9 +144,7 @@ impl Renderer<'_> {
                 ty,
                 value,
             } => {
-                let kw = self
-                    .kw(if *mutable { Kw::Var } else { Kw::Let })
-                    .to_string();
+                let kw = self.kw(if *mutable { Kw::Var } else { Kw::Let }).to_string();
                 let mut text = format!("{kw} {}", self.name(&name.text));
                 if let Some(t) = ty {
                     let _ = write!(text, ": {}", self.ty(*t));
@@ -323,11 +318,7 @@ fn main() {
     fn view(src: &str, lang: &str, glossary: &Glossary) -> String {
         let packs = Packs::builtin();
         let p = parse(src, &packs);
-        assert!(
-            p.diagnostics.is_empty(),
-            "{lang}: {:?}\n{src}",
-            p.diagnostics
-        );
+        assert!(p.diagnostics.is_empty(), "{lang}: {:?}\n{src}", p.diagnostics);
         let opts = ViewOptions {
             pack: packs.get(lang).unwrap(),
             packs: &packs,
@@ -348,11 +339,7 @@ fn main() {
         for lang in ["hi", "ta"] {
             let translated = view(PROGRAM, lang, &g);
             // Translating back to English recovers the original exactly.
-            assert_eq!(
-                view(&translated, "en", &g),
-                PROGRAM,
-                "via {lang}:\n{translated}"
-            );
+            assert_eq!(view(&translated, "en", &g), PROGRAM, "via {lang}:\n{translated}");
         }
     }
 

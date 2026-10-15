@@ -76,10 +76,7 @@ fn parse_args() -> Result<Opts, String> {
         }
     }
     if !MESSAGE_LANGS.contains(&o.lang.as_str()) {
-        return Err(format!(
-            "--lang must be one of {}",
-            MESSAGE_LANGS.join(", ")
-        ));
+        return Err(format!("--lang must be one of {}", MESSAGE_LANGS.join(", ")));
     }
     Ok(o)
 }
@@ -123,8 +120,7 @@ fn print_diagnostics(diags: &[Diagnostic], src: &str, file: &str, lang: &str) ->
 
 fn load(o: &Opts, require_entry: bool) -> Result<Unit, Failure> {
     let path = o.file.as_ref().ok_or("missing source file")?;
-    let src =
-        fs::read_to_string(path).map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+    let src = fs::read_to_string(path).map_err(|e| format!("cannot read {}: {e}", path.display()))?;
     let file = path.display().to_string();
 
     let all = Packs::builtin();
@@ -137,16 +133,12 @@ fn load(o: &Opts, require_entry: bool) -> Result<Unit, Failure> {
     };
 
     let glossary_path = o.glossary.clone().or_else(|| {
-        let p = path
-            .parent()
-            .unwrap_or(Path::new("."))
-            .join("omni.glossary.toml");
+        let p = path.parent().unwrap_or(Path::new(".")).join("omni.glossary.toml");
         p.exists().then_some(p)
     });
     let glossary = match glossary_path {
         Some(p) => {
-            let text =
-                fs::read_to_string(&p).map_err(|e| format!("cannot read {}: {e}", p.display()))?;
+            let text = fs::read_to_string(&p).map_err(|e| format!("cannot read {}: {e}", p.display()))?;
             Glossary::from_toml(&text).map_err(|e| format!("{}: {e}", p.display()))?
         }
         None => Glossary::default(),
@@ -184,13 +176,7 @@ fn cmd_run(o: &Opts) -> Result<ExitCode, Failure> {
     let all = Packs::builtin();
     let mut stdout = std::io::stdout();
     let entry = u.entry.expect("checked entry point");
-    match run_program(
-        &u.program,
-        &u.glossary,
-        output_style(o, &all),
-        entry,
-        &mut stdout,
-    ) {
+    match run_program(&u.program, &u.glossary, output_style(o, &all), entry, &mut stdout) {
         Ok(()) => Ok(ExitCode::SUCCESS),
         Err(d) => {
             eprintln!("{}", d.render(&u.src, &u.file, &o.lang));
@@ -271,11 +257,7 @@ fn cmd_build(o: &Opts) -> Result<ExitCode, Failure> {
                 eprintln!("built {}", exe.display());
                 return Ok(ExitCode::SUCCESS);
             }
-            Ok(_) => {
-                return Err(
-                    format!("{cc} failed; the generated C is in {}", c_path.display()).into(),
-                )
-            }
+            Ok(_) => return Err(format!("{cc} failed; the generated C is in {}", c_path.display()).into()),
             Err(_) => continue, // not installed: try the next compiler
         }
     }
@@ -321,11 +303,7 @@ fn cmd_packs() -> ExitCode {
             let w = p.word(kw).unwrap_or("-");
             let after = matches!(kw, Kw::If | Kw::While | Kw::Return | Kw::Print)
                 && p.position(kw) == Position::Postfix;
-            line.push_str(&cell(&if after {
-                format!("… {w}")
-            } else {
-                w.to_string()
-            }));
+            line.push_str(&cell(&if after { format!("… {w}") } else { w.to_string() }));
         }
         println!("{}", line.trim_end());
     }
