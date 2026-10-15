@@ -60,7 +60,10 @@ extern "C" fn kmain(hart_id: usize, dtb: usize) -> ! {
     );
 
     mm::init(args.ram.0, args.ram.1);
-    println!("[omni] paging on: {} MiB of RAM, kernel sections protected", args.ram.1 >> 20);
+    println!(
+        "[omni] paging on: {} MiB of RAM, kernel sections protected",
+        args.ram.1 >> 20
+    );
 
     match ramfb::init() {
         Some(fb) => {

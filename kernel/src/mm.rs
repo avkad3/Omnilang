@@ -54,7 +54,10 @@ static RAM_END: AtomicUsize = AtomicUsize::new(0);
 /// Returns a zeroed, page-aligned physical frame.
 pub fn alloc_frame() -> usize {
     let frame = NEXT_FRAME.fetch_add(PAGE_SIZE, Ordering::Relaxed);
-    assert!(frame + PAGE_SIZE <= RAM_END.load(Ordering::Relaxed), "out of physical memory");
+    assert!(
+        frame + PAGE_SIZE <= RAM_END.load(Ordering::Relaxed),
+        "out of physical memory"
+    );
     // SAFETY: the frame lies in free RAM above the kernel and is handed out once.
     unsafe { core::ptr::write_bytes(frame as *mut u8, 0, PAGE_SIZE) };
     frame
@@ -157,8 +160,8 @@ pub fn init(ram_start: usize, ram_size: usize) {
     ROOT.store(root, Ordering::Relaxed);
 
     let satp = (8usize << 60) | (root >> 12); // mode 8 = Sv39
-    // SAFETY: the new table identity-maps everything the kernel is
-    // currently executing and touching, so execution continues seamlessly.
+                                              // SAFETY: the new table identity-maps everything the kernel is
+                                              // currently executing and touching, so execution continues seamlessly.
     unsafe {
         asm!("csrw satp, {}", "sfence.vma", in(reg) satp);
     }
