@@ -23,7 +23,11 @@ pub enum Demo {
 
 impl BootArgs {
     pub fn parse(cmdline: &str) -> BootArgs {
-        let mut args = BootArgs { lang: 0, demo: None, exit: false };
+        let mut args = BootArgs {
+            lang: 0,
+            demo: None,
+            exit: false,
+        };
         for word in cmdline.split_ascii_whitespace() {
             match word.split_once('=') {
                 Some(("lang", v)) => {
@@ -53,7 +57,9 @@ impl BootArgs {
     /// # Safety
     /// `dtb` must be the device tree pointer passed in by the firmware.
     pub unsafe fn from_device_tree(dtb: usize) -> BootArgs {
-        let cmdline = fdt::Fdt::from_ptr(dtb as *const u8).ok().and_then(|f| f.chosen().bootargs());
+        let cmdline = fdt::Fdt::from_ptr(dtb as *const u8)
+            .ok()
+            .and_then(|f| f.chosen().bootargs());
         BootArgs::parse(cmdline.unwrap_or(""))
     }
 }

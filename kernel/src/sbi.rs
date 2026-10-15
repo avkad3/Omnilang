@@ -26,9 +26,19 @@ pub fn set_timer(stime: u64) {
     call(EXT_TIME, 0, stime as usize, 0);
 }
 
-/// Powers the machine off. `failure` reports an error exit status to QEMU.
+/// QEMU `virt` "sifive_test" device: writing to it ends the emulator with
+/// a chosen exit status, which lets automated tests tell pass from fail.
+const QEMU_TEST_DEVICE: usize = 0x10_0000;
+const QEMU_PASS: u32 = 0x5555;
+const QEMU_FAIL: u32 = 0x3333;
+
+/// Powers the machine off. `failure` makes QEMU exit with status 1.
 pub fn shutdown(failure: bool) -> ! {
-    // Reset type 0 = shutdown; reason 0 = none, 1 = system failure.
+    let code = if failure { (1 << 16) | QEMU_FAIL } else { QEMU_PASS };
+    // SAFETY: fixed MMIO address of the test device on QEMU virt.
+    unsafe { (QEMU_TEST_DEVICE as *mut u32).write_volatile(code) };
+    // Fallback if the test device is absent: ask the firmware. Reset type 0
+    // = shutdown; reason 1 = system failure.
     call(EXT_SRST, 0, 0, failure as usize);
     loop {
         // SAFETY: wait for interrupt; nothing else to do.

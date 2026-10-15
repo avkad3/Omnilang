@@ -27,10 +27,17 @@ fn main() {
         let values: Vec<&String> = LANGS
             .iter()
             .map(|l| {
-                translations.get(*l).unwrap_or_else(|| panic!("messages.toml: [{key}] is missing '{l}'"))
+                translations
+                    .get(*l)
+                    .unwrap_or_else(|| panic!("messages.toml: [{key}] is missing '{l}'"))
             })
             .collect();
-        let _ = writeln!(code, "pub const {}: [&str; {}] = {values:?};", key.to_uppercase(), LANGS.len());
+        let _ = writeln!(
+            code,
+            "pub const {}: [&str; {}] = {values:?};",
+            key.to_uppercase(),
+            LANGS.len()
+        );
     }
     fs::write(out.join("messages.rs"), code).unwrap();
 }

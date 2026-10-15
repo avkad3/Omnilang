@@ -5,7 +5,9 @@
 #![no_main]
 
 mod bootargs;
+mod report;
 mod sbi;
+mod trap;
 #[macro_use]
 mod uart;
 
@@ -14,10 +16,11 @@ mod messages {
     include!(concat!(env!("OUT_DIR"), "/messages.rs"));
 }
 
-use core::arch::global_asm;
+use core::arch::{asm, global_asm};
 use core::panic::PanicInfo;
 
-use bootargs::BootArgs;
+use bootargs::{BootArgs, Demo};
+use report::Cause;
 
 // Entry point: set up the stack, clear .bss, and call `kmain`.
 // OpenSBI passes the hart id in a0 and the device tree address in a1;
@@ -44,13 +47,61 @@ _start:
 extern "C" fn kmain(hart_id: usize, dtb: usize) -> ! {
     // SAFETY: `dtb` comes straight from the firmware.
     let args = unsafe { BootArgs::from_device_tree(dtb) };
+    report::configure(args.lang, args.exit);
     let lang = args.lang;
-    println!("[omni] {} (hart {hart_id}, lang={})", messages::BOOT[lang], messages::LANGS[lang]);
-    sbi::shutdown(false);
+    println!(
+        "[omni] {} (hart {hart_id}, lang={})",
+        messages::BOOT[lang],
+        messages::LANGS[lang]
+    );
+
+    trap::init();
+    // Let the timer run for a moment so the report has a real uptime.
+    while trap::ticks() < 3 {
+        // SAFETY: wait for the next interrupt.
+        unsafe { asm!("wfi") };
+    }
+
+    match args.demo {
+        Some(demo) => trigger(demo),
+        None if args.exit => sbi::shutdown(false),
+        None => {
+            println!("[omni] idle");
+            loop {
+                unsafe { asm!("wfi") };
+            }
+        }
+    }
+}
+
+/// Deliberately faults, to demonstrate the panic screen.
+fn trigger(demo: Demo) -> ! {
+    // SAFETY: none of this is safe; that is the point. Each access faults
+    // and the trap handler never returns to it.
+    unsafe {
+        match demo {
+            Demo::Illegal => asm!("unimp"),
+            // Nothing is mapped at address 0 on the virt machine.
+            Demo::Load => {
+                core::ptr::read_volatile(core::ptr::null::<u64>());
+            }
+            Demo::Store => core::ptr::write_volatile(core::ptr::null_mut::<u64>(), 0xdead),
+            // Atomic operations must be naturally aligned; firmware does not
+            // emulate misaligned atomics, so this reaches the kernel.
+            Demo::Misaligned => {
+                let word = 0x8020_0001usize as *mut u32;
+                asm!("amoadd.w zero, zero, ({})", in(reg) word);
+            }
+            Demo::Panic => {
+                let ticks = trap::ticks();
+                assert!(ticks == 0, "uptime must be zero, but is {ticks}");
+            }
+        }
+    }
+    unreachable!("demo fault did not trap")
 }
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    println!("[omni] panic: {info}");
-    sbi::shutdown(true);
+    report::fatal(Cause::KernelBug, None, None, Some(&format_args!("{info}")));
 }

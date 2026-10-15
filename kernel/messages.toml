@@ -77,3 +77,14 @@ ta = "கர்னல் குறைபாடு (ஒரு சோதனை த
 en = "Unexpected exception"
 hi = "अप्रत्याशित अपवाद"
 ta = "எதிர்பாராத விதிவிலக்கு"
+
+# Digits 0-9 used for decimal numbers (memory addresses stay in hex).
+[digits]
+en = "0123456789"
+hi = "०१२३४५६७८९"
+ta = "௦௧௨௩௪௫௬௭௮௯"
+
+[detail_label]
+en = "Details:"
+hi = "विवरण:"
+ta = "விவரம்:"
