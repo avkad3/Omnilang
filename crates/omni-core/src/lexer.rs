@@ -223,8 +223,11 @@ impl<'a> Lexer<'a> {
             self.push(Tok::Kw(kw), start);
             return;
         }
-        for d in security::check_identifier(&name, span) {
-            self.error(d);
+        // Check each distinct name once, at its first occurrence.
+        if !self.idents.iter().any(|(n, _)| *n == name) {
+            for d in security::check_identifier(&name, span) {
+                self.error(d);
+            }
         }
         self.idents.push((name.clone(), span));
         self.push(Tok::Ident(name), start);
@@ -400,6 +403,7 @@ mod tests {
         assert_eq!(codes("1२"), ["E0105"]);
         assert_eq!(codes("a $ b"), ["E0101"]);
         assert_eq!(codes("p\u{430}ypal"), ["E0004"]);
+        assert_eq!(codes("p\u{430}ypal + p\u{430}ypal"), ["E0004"]); // once per name
         assert_eq!(codes("x = 1; // \u{202E}"), ["E0001"]);
     }
 }
