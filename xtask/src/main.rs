@@ -4,6 +4,7 @@
 //!   cargo xtask run        [--lang en|hi|ta] [--demo illegal|load|store|misaligned|panic] [--headless]
 //!   cargo xtask screenshot [--lang ..] [--demo ..] [-o file.png]
 //!   cargo xtask test       [--release]   boot every language × fault and check the reports
+//!   cargo xtask grammar    [--check]     regenerate the VS Code syntax grammar from the packs
 
 use std::env;
 use std::io::{BufRead, BufReader, Write};
@@ -17,6 +18,7 @@ use std::time::Duration;
 const TARGET: &str = "riscv64gc-unknown-none-elf";
 
 struct Opts {
+    check: bool,
     release: bool,
     lang: String,
     demo: Option<String>,
@@ -116,6 +118,7 @@ fn run(o: &Opts) -> ExitStatus {
 
 fn parse(args: &[String]) -> Opts {
     let mut o = Opts {
+        check: false,
         release: false,
         lang: "en".into(),
         demo: None,
@@ -131,6 +134,7 @@ fn parse(args: &[String]) -> Opts {
         };
         match a.as_str() {
             "--release" => o.release = true,
+            "--check" => o.check = true,
             "--lang" => o.lang = value(),
             "--demo" => o.demo = Some(value()),
             "--headless" => o.headless = true,
@@ -154,6 +158,7 @@ fn main() {
         "run" => exit(run(&o).code().unwrap_or(1)),
         "screenshot" => screenshot(&o),
         "test" => test(&o),
+        "grammar" => grammar(&o),
         other => fail(format!("unknown command '{other}'")),
     }
 }
@@ -328,4 +333,115 @@ fn test(o: &Opts) {
     if failures > 0 {
         exit(1);
     }
+}
+
+/// Keyword groups for highlighting: (TextMate scope, keyword names).
+const GRAMMAR_GROUPS: [(&str, &[&str]); 6] = [
+    (
+        "keyword.control.omnilang",
+        &["if", "else", "then", "while", "return"],
+    ),
+    ("storage.type.function.omnilang", &["fn"]),
+    ("storage.modifier.omnilang", &["let", "var"]),
+    ("support.function.builtin.omnilang", &["print"]),
+    ("constant.language.omnilang", &["true", "false"]),
+    ("keyword.operator.word.omnilang", &["and", "or", "not"]),
+];
+const GRAMMAR_TYPES: &[&str] = &["int", "bool", "str"];
+
+/// Generates editors/vscode/syntaxes/omnilang.tmLanguage.json from the
+/// language packs, so every language's keywords are highlighted.
+fn grammar(o: &Opts) {
+    let packs_dir = root().join("crates/omni-core/packs");
+    let mut packs: Vec<toml::Table> = Vec::new();
+    let mut entries: Vec<_> = std::fs::read_dir(&packs_dir)
+        .unwrap_or_else(|e| fail(e.to_string()))
+        .collect();
+    entries.sort_by_key(|e| e.as_ref().map(|e| e.path()).ok());
+    for e in entries {
+        let path = e.unwrap().path();
+        if path.extension().is_some_and(|x| x == "toml") {
+            let text = std::fs::read_to_string(&path).unwrap();
+            packs.push(
+                text.parse()
+                    .unwrap_or_else(|e| fail(format!("{}: {e}", path.display()))),
+            );
+        }
+    }
+    let words = |names: &[&str]| -> String {
+        let mut all: Vec<String> = Vec::new();
+        for p in &packs {
+            for name in names {
+                let w = p["keywords"].get(*name).and_then(|v| v.as_str()).or_else(|| {
+                    p["statements"]
+                        .get(*name)
+                        .and_then(|s| s.get("word"))
+                        .and_then(|v| v.as_str())
+                });
+                if let Some(w) = w {
+                    if !all.iter().any(|x| x == w) {
+                        all.push(w.to_string());
+                    }
+                }
+            }
+        }
+        // Longest first so alternation prefers whole words.
+        all.sort_by_key(|w| std::cmp::Reverse(w.chars().count()));
+        all.join("|")
+    };
+    // Unicode-aware word boundaries: Indic vowel signs are marks (\p{M}),
+    // which a plain \b would treat as a boundary.
+    let word = |alts: String| format!(r"(?<![\p{{L}}\p{{M}}\p{{N}}_])(?:{alts})(?![\p{{L}}\p{{M}}\p{{N}}_])");
+
+    let mut patterns = vec![
+        serde_json::json!({ "include": "#comment" }),
+        serde_json::json!({ "include": "#string" }),
+    ];
+    for (scope, names) in GRAMMAR_GROUPS {
+        patterns.push(serde_json::json!({ "name": scope, "match": word(words(names)) }));
+    }
+    patterns
+        .push(serde_json::json!({ "name": "storage.type.omnilang", "match": word(words(GRAMMAR_TYPES)) }));
+    patterns.push(serde_json::json!({
+        "name": "constant.numeric.omnilang",
+        "match": r"(?<![\p{L}\p{M}_])[0-9०-९௦-௯]+(?![\p{L}\p{M}_])"
+    }));
+    patterns.push(serde_json::json!({
+        "name": "entity.name.function.omnilang",
+        "match": r"[\p{L}_][\p{L}\p{M}\p{N}_\x{200C}\x{200D}]*(?=\s*\()"
+    }));
+    patterns.push(serde_json::json!({ "name": "punctuation.terminator.omnilang", "match": "[;।॥]" }));
+    patterns.push(serde_json::json!({ "name": "keyword.operator.omnilang", "match": r"->|==|!=|<=|>=|&&|\|\||[-+*/%<>=!]" }));
+
+    let grammar = serde_json::json!({
+        "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+        "name": "OmniLang",
+        "scopeName": "source.omnilang",
+        "comment": "Generated by `cargo xtask grammar` from crates/omni-core/packs. Do not edit by hand.",
+        "patterns": patterns,
+        "repository": {
+            "comment": { "name": "comment.line.double-slash.omnilang", "match": "//.*$" },
+            "string": {
+                "name": "string.quoted.double.omnilang",
+                "begin": "\"",
+                "end": "\"",
+                "patterns": [{ "name": "constant.character.escape.omnilang", "match": r#"\[nt"\]"# }]
+            }
+        }
+    });
+    let text = serde_json::to_string_pretty(&grammar).unwrap() + "\n";
+    let out = root().join("editors/vscode/syntaxes/omnilang.tmLanguage.json");
+    if o.check {
+        let current = std::fs::read_to_string(&out)
+            .unwrap_or_default()
+            .replace("\r\n", "\n");
+        if current != text {
+            fail("editors/vscode grammar is out of date: run `cargo xtask grammar`");
+        }
+        println!("grammar is up to date");
+        return;
+    }
+    std::fs::create_dir_all(out.parent().unwrap()).unwrap();
+    std::fs::write(&out, text).unwrap();
+    println!("wrote {}", out.display());
 }

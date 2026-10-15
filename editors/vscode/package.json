@@ -1,0 +1,146 @@
+{
+  "name": "omnilang",
+  "displayName": "OmniLang",
+  "description": "Write code in English, Hindi or Tamil: highlighting, errors in your language, and romanized typing (agar → अगर).",
+  "version": "0.1.0",
+  "publisher": "avkad3",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/avkad3/Omnilang"
+  },
+  "engines": {
+    "vscode": "^1.91.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Formatters"
+  ],
+  "keywords": [
+    "hindi",
+    "tamil",
+    "multilingual",
+    "transliteration",
+    "education"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "omnilang",
+        "aliases": [
+          "OmniLang",
+          "omnilang"
+        ],
+        "extensions": [
+          ".om"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "omnilang",
+        "scopeName": "source.omnilang",
+        "path": "./syntaxes/omnilang.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "OmniLang",
+      "properties": {
+        "omni.messageLanguage": {
+          "type": "string",
+          "enum": [
+            "en",
+            "hi",
+            "ta"
+          ],
+          "enumDescriptions": [
+            "English",
+            "हिन्दी (Hindi)",
+            "தமிழ் (Tamil)"
+          ],
+          "default": "en",
+          "description": "Language for error messages."
+        },
+        "omni.typingLanguage": {
+          "type": "string",
+          "enum": [
+            "en",
+            "hi",
+            "ta"
+          ],
+          "enumDescriptions": [
+            "English",
+            "हिन्दी (Hindi)",
+            "தமிழ் (Tamil)"
+          ],
+          "default": "en",
+          "description": "Language for completion and romanized typing in a new file. Files that already have keywords use their own language."
+        },
+        "omni.server.path": {
+          "type": "string",
+          "default": "omni",
+          "description": "Path to the omni executable (runs `omni lsp`)."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "omnilang.viewEnglish",
+        "title": "View in English",
+        "category": "OmniLang"
+      },
+      {
+        "command": "omnilang.viewHindi",
+        "title": "View in Hindi (हिन्दी)",
+        "category": "OmniLang"
+      },
+      {
+        "command": "omnilang.viewTamil",
+        "title": "View in Tamil (தமிழ்)",
+        "category": "OmniLang"
+      },
+      {
+        "command": "omnilang.restartServer",
+        "title": "Restart Language Server",
+        "category": "OmniLang"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "omnilang.viewEnglish",
+          "when": "editorLangId == omnilang"
+        },
+        {
+          "command": "omnilang.viewHindi",
+          "when": "editorLangId == omnilang"
+        },
+        {
+          "command": "omnilang.viewTamil",
+          "when": "editorLangId == omnilang"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p . --noEmit && npm run bundle",
+    "bundle": "esbuild src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node --target=node20 --sourcemap --minify",
+    "watch": "npm run bundle -- --watch",
+    "package": "npm run compile && vsce package --no-dependencies --out omnilang.vsix",
+    "pretest": "npm run bundle && tsc -p tsconfig.test.json",
+    "test": "node out-test/test/runTest.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^10.1.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "~1.91.0",
+    "@vscode/vsce": "^3.0.0",
+    "typescript": "^5.6.0",
+    "esbuild": "^0.25.0",
+    "@vscode/test-electron": "^3.1.0"
+  }
+}

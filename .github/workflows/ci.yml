@@ -57,3 +57,28 @@ jobs:
         with:
           name: panic-screens
           path: shots/
+
+  vscode:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - run: cargo xtask grammar --check
+      - run: cargo build --package omni
+      - run: npm ci
+        working-directory: editors/vscode
+      # Launches a real VS Code with the extension and the omni server.
+      - run: xvfb-run -a npm test
+        working-directory: editors/vscode
+      - run: npm run package
+        working-directory: editors/vscode
+      - uses: actions/upload-artifact@v4
+        with:
+          name: omnilang-vsix
+          path: editors/vscode/omnilang.vsix
