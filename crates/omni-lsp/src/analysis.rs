@@ -41,7 +41,7 @@ impl Doc<'_> {
             }
         }
         let mut langs: Vec<(&str, usize)> = counts.into_iter().collect();
-        langs.sort_by(|a, b| b.1.cmp(&a.1));
+        langs.sort_by_key(|&(_, count)| std::cmp::Reverse(count));
         langs.into_iter().map(|(l, _)| l).collect()
     }
 
