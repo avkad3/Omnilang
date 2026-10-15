@@ -104,11 +104,11 @@ fn trigger(demo: Demo) -> ! {
                 core::ptr::read_volatile(core::ptr::null::<u64>());
             }
             Demo::Store => core::ptr::write_volatile(core::ptr::null_mut::<u64>(), 0xdead),
-            // Atomic operations must be naturally aligned; firmware does not
-            // emulate misaligned atomics, so this reaches the kernel.
             // Kernel code is mapped read/execute only. A byte write: with
             // compressed instructions, functions are only 2-byte aligned.
             Demo::ReadOnly => core::ptr::write_volatile(trigger as *const () as *mut u8, 0),
+            // Atomic operations must be naturally aligned; firmware does not
+            // emulate misaligned atomics, so this reaches the kernel.
             Demo::Misaligned => {
                 let word = 0x8020_0001usize as *mut u32;
                 asm!("amoadd.w zero, zero, ({})", in(reg) word);
