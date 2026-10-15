@@ -5,8 +5,11 @@
 #![no_main]
 
 mod bootargs;
+mod font;
+mod ramfb;
 mod report;
 mod sbi;
+mod screen;
 mod trap;
 #[macro_use]
 mod uart;
@@ -54,6 +57,14 @@ extern "C" fn kmain(hart_id: usize, dtb: usize) -> ! {
         messages::BOOT[lang],
         messages::LANGS[lang]
     );
+
+    match ramfb::init() {
+        Some(fb) => {
+            screen::boot(fb, lang);
+            report::set_framebuffer(fb);
+        }
+        None => println!("[omni] no framebuffer (start QEMU with -device ramfb)"),
+    }
 
     trap::init();
     // Let the timer run for a moment so the report has a real uptime.

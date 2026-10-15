@@ -5,14 +5,21 @@
 //! halts (or powers off when booted with `exit`).
 
 use core::fmt::{self, Write as _};
-use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicPtr, AtomicUsize, Ordering};
 
+use crate::font::{text, Bitmap};
 use crate::messages as m;
-use crate::{sbi, trap, uart::Uart};
+use crate::{ramfb, sbi, screen, trap, uart::Uart};
 
 static LANG: AtomicUsize = AtomicUsize::new(0);
 static EXIT_ON_FATAL: AtomicBool = AtomicBool::new(false);
 static IN_FATAL: AtomicBool = AtomicBool::new(false);
+static FRAMEBUFFER: AtomicPtr<u32> = AtomicPtr::new(core::ptr::null_mut());
+
+/// Hands the framebuffer to the reporter so a fatal error can draw on it.
+pub fn set_framebuffer(fb: &'static mut [u32]) {
+    FRAMEBUFFER.store(fb.as_mut_ptr(), Ordering::SeqCst);
+}
 
 pub fn configure(lang: usize, exit: bool) {
     LANG.store(lang, Ordering::Relaxed);
@@ -46,6 +53,48 @@ impl Cause {
             Cause::KernelBug => &m::CAUSE_KERNEL_BUG,
             Cause::Unknown(_) => &m::CAUSE_UNKNOWN,
         }
+    }
+
+    pub fn message_bitmap(self) -> &'static [Bitmap; 3] {
+        match self {
+            Cause::IllegalInstruction => &text::CAUSE_ILLEGAL_INSTRUCTION,
+            Cause::LoadAccess => &text::CAUSE_LOAD_ACCESS,
+            Cause::StoreAccess => &text::CAUSE_STORE_ACCESS,
+            Cause::Misaligned => &text::CAUSE_MISALIGNED,
+            Cause::PageFault => &text::CAUSE_PAGE_FAULT,
+            Cause::KernelBug => &text::CAUSE_KERNEL_BUG,
+            Cause::Unknown(_) => &text::CAUSE_UNKNOWN,
+        }
+    }
+}
+
+/// A fixed-capacity string, for formatting without an allocator.
+pub struct FixedString<const N: usize> {
+    buf: [u8; N],
+    len: usize,
+}
+
+impl<const N: usize> FixedString<N> {
+    pub const fn new() -> Self {
+        FixedString { buf: [0; N], len: 0 }
+    }
+    pub fn as_str(&self) -> &str {
+        core::str::from_utf8(&self.buf[..self.len]).unwrap_or("")
+    }
+}
+
+impl<const N: usize> fmt::Write for FixedString<N> {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        for c in s.chars() {
+            let mut tmp = [0u8; 4];
+            let enc = c.encode_utf8(&mut tmp).as_bytes();
+            if self.len + enc.len() > N {
+                return Err(fmt::Error); // truncate at a character boundary
+            }
+            self.buf[self.len..self.len + enc.len()].copy_from_slice(enc);
+            self.len += enc.len();
+        }
+        Ok(())
     }
 }
 
@@ -95,11 +144,30 @@ pub fn fatal(cause: Cause, pc: Option<usize>, addr: Option<usize>, detail: Optio
         let _ = writeln!(out, "{} {a:#018x}", m::ADDR_LABEL[l]);
     }
     let _ = writeln!(out, "{} {}", m::TICKS_LABEL[l], Decimal(trap::ticks()));
+    let mut detail_text = FixedString::<512>::new();
     if let Some(d) = detail {
-        let _ = writeln!(out, "{} {d}", m::DETAIL_LABEL[l]);
+        let _ = write!(detail_text, "{d}");
+        let _ = writeln!(out, "{} {}", m::DETAIL_LABEL[l], detail_text.as_str());
     }
     let _ = writeln!(out, "{}", m::FOOTER[l]);
     let _ = writeln!(out, "[omni] fatal: {}", m::LANGS[l]);
+
+    let fb = FRAMEBUFFER.load(Ordering::SeqCst);
+    if !fb.is_null() {
+        // SAFETY: set_framebuffer stored a valid 'static framebuffer, and
+        // nothing else draws once a fatal error is being reported.
+        let fb = unsafe { core::slice::from_raw_parts_mut(fb, ramfb::WIDTH * ramfb::HEIGHT) };
+        let info = screen::Info {
+            lang: l,
+            cause,
+            pc,
+            addr,
+            ticks: trap::ticks(),
+            detail: detail.map(|_| detail_text.as_str()),
+        };
+        screen::draw(fb, &info);
+        let _ = writeln!(out, "[omni] panic screen drawn");
+    }
 
     if EXIT_ON_FATAL.load(Ordering::Relaxed) {
         sbi::shutdown(true);
