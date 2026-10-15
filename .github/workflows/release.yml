@@ -75,7 +75,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: omnilang-*.*
+          # Archives only: the staging folder name also contains dots (v0.1.0).
+          path: |
+            omnilang-*.zip
+            omnilang-*.tar.gz
+          if-no-files-found: error
 
   vsix:
     runs-on: ubuntu-latest
