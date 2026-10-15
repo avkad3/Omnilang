@@ -52,6 +52,8 @@ cargo build --release
 | `omni c <file> [-o out.c]` | translate to C |
 | `omni build <file> [-o prog]` | compile to a native executable with gcc or clang |
 | `omni packs` | show every keyword in every language |
+| `omni translit --to hi "agar ginatii"` | romanized text in Devanagari or Tamil |
+| `omni lsp` | language server for editors |
 
 | Option | Effect |
 |---|---|
@@ -122,6 +124,24 @@ A language that accepts many scripts must prevent code that *looks* different fr
 - **Lookalikes:** two names that render alike, or a name like `retum` that imitates the keyword `return`, are reported.
 - **Normalization:** names are NFKC-normalized, as in Python. Canonically equivalent spellings, such as `क़` written as one or two code points, and fullwidth letters therefore mean exactly what they look like.
 
+## Editor support: typing Hindi and Tamil on a normal keyboard
+
+Typing Devanagari or Tamil on a standard keyboard is slow, which alone can stop people using a language like this. OmniLang's language server, `omni lsp`, and the [VS Code extension](editors/vscode/) make it fast.
+
+- **Romanized typing:**
+  - Type `ginatii` and pick `गिनती`; type `ninaivagam` and pick `நினைவகம்`.
+  - The [transliteration rules](crates/omni-core/src/translit.rs) are deterministic: ITRANS-style for Hindi, common romanization for Tamil. Try them with `omni translit --to hi "agar ginatii > 5 chhaapo"`.
+- **Keywords from any spelling:** in a Hindi file, `ret`, `lautao` and `திருப்பு` all complete to `लौटाओ`. Names already in the file match after transliteration (`gin` → `गिनती`), and glossary terms match in any language.
+- **Errors in your language** as you type, positioned correctly. LSP counts UTF-16 units, but a Devanagari letter is 3 bytes in UTF-8, and confusing the two misplaces every underline.
+- **Hover** shows a keyword in every language with its word order. **Format Document** keeps a file in its own language. **View in Hindi / Tamil / English** opens a translated copy beside the file.
+- **Highlighting** for all three languages. The grammar is generated from the language packs with `cargo xtask grammar`, so a new pack is highlighted automatically.
+
+```bash
+cargo install --path crates/omni-cli        # puts `omni` (and `omni lsp`) on PATH
+cd editors/vscode && npm install && npm run package
+code --install-extension omnilang.vsix
+```
+
 ## The kernel: crash screens in your language
 
 [`kernel/`](kernel/) is a small RISC-V kernel for QEMU's `virt` machine. When something goes wrong, it explains the problem in the user's language: on the serial console and on a graphical panic screen drawn before any filesystem, font engine or GUI exists.
@@ -177,6 +197,8 @@ crates/omni-core/   compiler library: pack, lexer, security, parser, ast,
 crates/omni-core/packs/     en.toml, hi.toml, ta.toml
 crates/omni-core/messages.toml   every diagnostic in every language
 crates/omni-cli/    the `omni` binary and end-to-end tests
+crates/omni-lsp/    language server: diagnostics, completion, hover, formatting
+editors/vscode/     VS Code extension (TypeScript) with a generated grammar
 examples/           programs in each language, with recorded output
 kernel/             RISC-V kernel: boot, traps, paging, ramfb, panic screen
 kernel/build.rs     build-time shaping and rasterization of kernel messages
@@ -192,14 +214,14 @@ xtask/              cargo xtask: build, run, screenshot and test the kernel in Q
 2. still produces it after being translated into each of the three languages;
 3. produces the same bytes as a native binary built with gcc or clang.
 
-CI runs all of this on Linux and Windows, plus the kernel boot matrix on Linux with QEMU.
+CI runs all of this on Linux and Windows, plus the kernel boot matrix with QEMU and the VS Code extension's end-to-end test, on Linux.
 
 ## Roadmap
 
 - [x] **Phase 1: multilingual compiler.** Language packs, word-order-aware parser, glossaries, multilingual views, localized errors, interpreter and C backend.
 - [x] **Phase 2: bare-metal RISC-V.** A kernel in QEMU with traps, a timer and Sv39 paging, whose panic screen shows the error in Hindi, Tamil or English using text shaped at build time.
 - [ ] **Next for the kernel:** isolated drivers that restart after a crash (MINIX-style) instead of halting the whole system, and running compiled OmniLang programs on the kernel.
-- [ ] **Phase 3: editor support.** A language server and VS Code extension with transliteration input (`agar` → `अगर`).
+- [x] **Phase 3: editor support.** Transliteration, a language server and a VS Code extension, tested end to end in a real VS Code.
 - [ ] **Phase 4: offline assistant.** A small local model that explains errors in your language and drafts code that the compiler then checks.
 - [ ] More languages (Marathi, Bengali, Arabic…) and a browser playground (WebAssembly).
 
