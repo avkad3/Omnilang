@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/omni-core", "crates/omni-cli", "xtask"]
+members = ["crates/omni-core", "crates/omni-cli", "crates/omni-lsp", "xtask"]
 exclude = ["kernel"]
 
 [workspace.package]

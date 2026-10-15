@@ -74,6 +74,11 @@ impl Glossary {
         self.terms[i].get(lang).map(String::as_str)
     }
 
+    /// Every spelling of every term.
+    pub fn spellings(&self) -> impl Iterator<Item = &str> {
+        self.index.keys().map(String::as_str)
+    }
+
     pub fn is_empty(&self) -> bool {
         self.terms.is_empty()
     }

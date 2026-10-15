@@ -25,6 +25,7 @@ USAGE:
     omni build <file> [-o program]    compile to a native executable (needs gcc or clang)
     omni packs                        list language packs and their keywords
     omni translit --to <hi|ta> <text> romanized typing: agar -> अगर
+    omni lsp                          language server for editors (stdio)
 
 OPTIONS:
     --lang <en|hi|ta>     language for errors and printed output (default: $OMNI_LANG or en)
@@ -344,6 +345,15 @@ fn main() -> ExitCode {
         "build" => cmd_build(&o),
         "packs" => return cmd_packs(),
         "translit" => cmd_translit(&o),
+        "lsp" => {
+            return match omni_lsp::run_stdio() {
+                Ok(()) => ExitCode::SUCCESS,
+                Err(e) => {
+                    eprintln!("omni lsp: {e}");
+                    ExitCode::from(1)
+                }
+            };
+        }
         "help" => {
             print!("{USAGE}");
             return ExitCode::SUCCESS;

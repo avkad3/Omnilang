@@ -34,6 +34,27 @@ pub enum Kw {
 }
 
 impl Kw {
+    /// Every keyword.
+    pub const ALL: [Kw; 17] = [
+        Kw::Fn,
+        Kw::Let,
+        Kw::Var,
+        Kw::Else,
+        Kw::Then,
+        Kw::True,
+        Kw::False,
+        Kw::And,
+        Kw::Or,
+        Kw::Not,
+        Kw::Int,
+        Kw::Bool,
+        Kw::Str,
+        Kw::If,
+        Kw::While,
+        Kw::Return,
+        Kw::Print,
+    ];
+
     /// Keywords every pack must define (`Then` is optional).
     const REQUIRED: [(Kw, &'static str); 13] = [
         (Kw::Fn, "fn"),

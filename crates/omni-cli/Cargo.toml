@@ -11,3 +11,4 @@ path = "src/main.rs"
 
 [dependencies]
 omni-core = { path = "../omni-core" }
+omni-lsp = { path = "../omni-lsp" }
