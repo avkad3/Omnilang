@@ -34,7 +34,32 @@ Most people learning to program in India learn the ideas in their own language a
 | Mixing scripts opens security holes | **Lookalike and hidden-character checks:** see [Security](#security). |
 | Localized languages are toys | OmniLang compiles to **readable C** and has static types and overflow-checked arithmetic. A **RISC-V kernel** shows its crash screens in Hindi and Tamil. |
 
-## Quick start
+## Install
+
+**Download:** grab the file for your computer from the [latest release](https://github.com/avkad3/Omnilang/releases/latest), unzip it, and run `omni`. No Rust or Git needed.
+
+| System | File |
+|---|---|
+| Windows | `omnilang-v0.1.0-windows-x86_64.zip` |
+| macOS (Apple Silicon / Intel) | `omnilang-v0.1.0-macos-arm64.tar.gz` / `…-macos-x86_64.tar.gz` |
+| Linux | `omnilang-v0.1.0-linux-x86_64.tar.gz` |
+| VS Code extension | `omnilang.vsix` |
+
+**Package managers:**
+
+```bash
+# Windows (Scoop)
+scoop bucket add omnilang https://github.com/avkad3/Omnilang
+scoop install omnilang
+
+# macOS / Linux (Homebrew)
+brew tap avkad3/omnilang https://github.com/avkad3/Omnilang
+brew install omnilang
+```
+
+Then try `omni run examples/hello.om`. Each download includes the examples and a `GETTING-STARTED.txt`. To build native executables with `omni build`, you also need gcc or clang.
+
+## Quick start (from source)
 
 ```bash
 cargo build --release

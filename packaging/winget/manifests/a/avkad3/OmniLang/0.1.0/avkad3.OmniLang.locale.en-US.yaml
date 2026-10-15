@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: avkad3.OmniLang
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: Aditya Vijay Kumar
+PublisherUrl: https://github.com/avkad3
+PackageName: OmniLang
+PackageUrl: https://github.com/avkad3/Omnilang
+License: MIT
+LicenseUrl: https://github.com/avkad3/Omnilang/blob/main/LICENSE
+ShortDescription: A programming language you can write in English, Hindi or Tamil.
+Description: OmniLang lets you write programs with English, Hindi or Tamil keywords, shows errors in your language, and translates any program between the three.
+Tags:
+- programming-language
+- compiler
+- hindi
+- tamil
+- education
+ReleaseNotesUrl: https://github.com/avkad3/Omnilang/releases/tag/v0.1.0
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+PackageIdentifier: avkad3.OmniLang
+PackageVersion: 0.1.0
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+- RelativeFilePath: omnilang-v0.1.0-windows-x86_64\omni.exe
+  PortableCommandAlias: omni
+Installers:
+- Architecture: x64
+  InstallerUrl: https://github.com/avkad3/Omnilang/releases/download/v0.1.0/omnilang-v0.1.0-windows-x86_64.zip
+  InstallerSha256: 26DCB44C75054F3B4419D8FC47CA8567EC6A82A9F6A188CA9434BF5DB984F69A
+ManifestType: installer
+ManifestVersion: 1.6.0

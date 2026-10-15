@@ -1,0 +1,51 @@
+name: packages
+
+# Installs the released OmniLang the way users do, on fresh machines.
+on:
+  push:
+    branches: [main]
+    paths: ["bucket/**", "Formula/**", ".github/workflows/packages.yml"]
+  workflow_dispatch:
+
+jobs:
+  scoop:
+    runs-on: windows-latest
+    steps:
+      - name: Install Scoop
+        shell: pwsh
+        run: |
+          Invoke-RestMethod -Uri https://get.scoop.sh -OutFile install.ps1
+          .\install.ps1 -RunAsAdmin
+          Join-Path (Resolve-Path ~).Path "scoop\shims" >> $env:GITHUB_PATH
+      - name: Install OmniLang
+        shell: pwsh
+        run: |
+          scoop bucket add omnilang https://github.com/${{ github.repository }}
+          scoop install omnilang
+      - name: Use it
+        shell: pwsh
+        run: |
+          omni --version
+          $examples = Join-Path (scoop prefix omnilang) "examples"
+          omni run (Join-Path $examples "primes.om")
+          omni view (Join-Path $examples "hello.om") --to ta
+
+  homebrew:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Put Homebrew on PATH (Linux)
+        if: runner.os == 'Linux'
+        run: echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+      - name: Install OmniLang
+        run: |
+          brew tap avkad3/omnilang https://github.com/${{ github.repository }}
+          brew install omnilang
+      - name: Use it
+        run: |
+          omni --version
+          brew test omnilang
+          omni view "$(brew --prefix)/share/omnilang/examples/primes.om" --to en | head -5

@@ -1,0 +1,26 @@
+{
+  "architecture": {
+    "64bit": {
+      "extract_dir": "omnilang-v0.1.0-windows-x86_64",
+      "hash": "26dcb44c75054f3b4419d8fc47ca8567ec6a82a9f6a188ca9434bf5db984f69a",
+      "url": "https://github.com/avkad3/Omnilang/releases/download/v0.1.0/omnilang-v0.1.0-windows-x86_64.zip"
+    }
+  },
+  "autoupdate": {
+    "architecture": {
+      "64bit": {
+        "extract_dir": "omnilang-v$version-windows-x86_64",
+        "url": "https://github.com/avkad3/Omnilang/releases/download/v$version/omnilang-v$version-windows-x86_64.zip"
+      }
+    },
+    "hash": {
+      "url": "$baseurl/SHA256SUMS.txt"
+    }
+  },
+  "bin": "omni.exe",
+  "checkver": "github",
+  "description": "A programming language you can write in English, Hindi or Tamil",
+  "homepage": "https://github.com/avkad3/Omnilang",
+  "license": "MIT",
+  "version": "0.1.0"
+}
