@@ -1,0 +1,41 @@
+OmniLang: a programming language you can write in English, Hindi or Tamil
+=========================================================================
+
+1. Put the `omni` program (omni.exe on Windows) somewhere on your PATH,
+   or run it from this folder.
+
+2. Try the examples:
+
+     omni run examples/hello.om           English
+     omni run examples/primes.om          Hindi  (हिन्दी)
+     omni run examples/squares.om         Tamil  (தமிழ்)
+
+3. See any program in another language:
+
+     omni view examples/primes.om --to ta
+
+4. Get error messages in Hindi or Tamil:
+
+     omni run myprogram.om --lang hi
+
+5. Make a stand-alone program (needs gcc or clang installed):
+
+     omni build examples/squares.om
+
+Keywords
+--------
+                English        Hindi            Tamil
+  function      fn             कार्य            செயல்பாடு
+  variable      var            चर               மாறி
+  if            if x { }       अगर x तो { }     x என்றால் { }
+  loop          while x { }    जबतक x { }       x இருக்கும்வரை { }
+  print         print x;       x छापो।          x அச்சிடு;
+  return        return x;      x लौटाओ।         x திருப்பு;
+
+Run `omni packs` for the full list and `omni --help` for every command.
+
+Editor: install omnilang.vsix in VS Code (Extensions panel > "..." >
+"Install from VSIX") for highlighting, errors as you type, and romanized
+typing (type "agar" to get अगर).
+
+More: https://github.com/avkad3/Omnilang

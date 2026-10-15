@@ -26,6 +26,7 @@ USAGE:
     omni packs                        list language packs and their keywords
     omni translit --to <hi|ta> <text> romanized typing: agar -> अगर
     omni lsp                          language server for editors (stdio)
+    omni --version                    print the version
 
 OPTIONS:
     --lang <en|hi|ta>     language for errors and printed output (default: $OMNI_LANG or en)
@@ -49,7 +50,11 @@ struct Opts {
 
 fn parse_args() -> Result<Opts, String> {
     let mut args = env::args().skip(1);
-    let command = args.next().ok_or("missing command")?;
+    let command = match args.next().ok_or("missing command")?.as_str() {
+        "--version" | "-V" | "version" => "version".to_string(),
+        "--help" | "-h" => "help".to_string(),
+        other => other.to_string(),
+    };
     let mut o = Opts {
         command,
         file: None,
@@ -356,6 +361,10 @@ fn main() -> ExitCode {
         }
         "help" => {
             print!("{USAGE}");
+            return ExitCode::SUCCESS;
+        }
+        "version" => {
+            println!("omni {}", env!("CARGO_PKG_VERSION"));
             return ExitCode::SUCCESS;
         }
         other => {

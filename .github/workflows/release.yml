@@ -1,0 +1,129 @@
+name: release
+
+# Push a tag like v0.1.0 to build and publish downloads for every platform.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: windows-x86_64
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            name: linux-x86_64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            name: macos-arm64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            name: macos-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Check the tag matches the crate version
+        shell: bash
+        run: |
+          version=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          test "v$version" = "$GITHUB_REF_NAME" || { echo "tag $GITHUB_REF_NAME != v$version"; exit 1; }
+      - name: Install musl tools
+        if: contains(matrix.target, 'musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - name: Build
+        shell: bash
+        env:
+          # Static C runtime on Windows: no Visual C++ redistributable needed.
+          RUSTFLAGS: ${{ contains(matrix.target, 'windows') && '-C target-feature=+crt-static' || '' }}
+        run: cargo build --release --locked --package omni --target ${{ matrix.target }}
+      - name: Smoke test
+        if: matrix.target != 'x86_64-apple-darwin' # cross-built; can't run on arm64 runners without Rosetta
+        shell: bash
+        run: |
+          exe=target/${{ matrix.target }}/release/omni
+          [ -f "$exe.exe" ] && exe="$exe.exe"
+          "$exe" --version
+          "$exe" run examples/primes.om | tail -1
+      - name: Package
+        shell: bash
+        run: |
+          dir="omnilang-$GITHUB_REF_NAME-${{ matrix.name }}"
+          mkdir "$dir"
+          exe=target/${{ matrix.target }}/release/omni
+          [ -f "$exe.exe" ] && exe="$exe.exe"
+          cp "$exe" "$dir/"
+          cp README.md LICENSE dist/GETTING-STARTED.txt "$dir/"
+          cp -r examples "$dir/"
+          if [[ "${{ matrix.os }}" == windows-* ]]; then
+            7z a "$dir.zip" "$dir" > /dev/null
+          else
+            tar czf "$dir.tar.gz" "$dir"
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: omnilang-*.*
+
+  vsix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci && npm run package
+        working-directory: editors/vscode
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vsix
+          path: editors/vscode/omnilang.vsix
+
+  publish:
+    needs: [build, vsix]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - name: Checksums
+        working-directory: assets
+        run: sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - name: Create the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > notes.md <<NOTES
+          ## Download
+
+          | System | File |
+          |---|---|
+          | Windows | \`omnilang-$GITHUB_REF_NAME-windows-x86_64.zip\` |
+          | macOS (Apple Silicon) | \`omnilang-$GITHUB_REF_NAME-macos-arm64.tar.gz\` |
+          | macOS (Intel) | \`omnilang-$GITHUB_REF_NAME-macos-x86_64.tar.gz\` |
+          | Linux | \`omnilang-$GITHUB_REF_NAME-linux-x86_64.tar.gz\` |
+          | VS Code extension | \`omnilang.vsix\` |
+
+          Unzip, then run \`omni run examples/hello.om\`. See \`GETTING-STARTED.txt\` inside.
+          No Rust or Git needed. \`omni build\` (native executables) needs gcc or clang.
+
+          Or install with a package manager:
+
+          - Windows (Scoop): \`scoop bucket add omnilang https://github.com/avkad3/Omnilang\` then \`scoop install omnilang\`
+          - macOS / Linux (Homebrew): \`brew tap avkad3/omnilang https://github.com/avkad3/Omnilang\` then \`brew install omnilang\`
+          NOTES
+          gh release create "$GITHUB_REF_NAME" assets/* --title "OmniLang $GITHUB_REF_NAME" --notes-file notes.md
