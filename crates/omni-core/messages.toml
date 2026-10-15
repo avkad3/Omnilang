@@ -78,6 +78,16 @@ en = "expected {expected}, found {found}"
 hi = "{expected} अपेक्षित था, पर {found} मिला"
 ta = "{expected} எதிர்பார்க்கப்பட்டது, ஆனால் {found} கிடைத்தது"
 
+[E0202]
+en = "'{word}' comes after what it applies to; write it at the end, e.g. `{example}`"
+hi = "'{word}' जिस पर लागू होता है उसके बाद आता है; इसे अंत में लिखें, जैसे `{example}`"
+ta = "'{word}' அது சார்ந்ததற்குப் பின் வரும்; இறுதியில் எழுதவும், எ.கா. `{example}`"
+
+[E0203]
+en = "'{word}' comes before what it applies to; write it first, e.g. `{example}`"
+hi = "'{word}' जिस पर लागू होता है उससे पहले आता है; इसे शुरू में लिखें, जैसे `{example}`"
+ta = "'{word}' அது சார்ந்ததற்கு முன் வரும்; முதலில் எழுதவும், எ.கா. `{example}`"
+
 # ---- names and types (E03xx) ----
 
 [E0201]

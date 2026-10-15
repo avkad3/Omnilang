@@ -202,7 +202,7 @@ impl Pack {
 #[derive(Debug, Clone)]
 pub struct Packs {
     packs: Vec<Pack>,
-    lookup: HashMap<String, Kw>,
+    lookup: HashMap<String, (Kw, Option<Position>)>,
 }
 
 const BUILTIN: [&str; 3] = [
@@ -223,19 +223,22 @@ impl Packs {
 
     /// Builds a registry, rejecting a word that means two different things.
     pub fn new(packs: Vec<Pack>) -> Result<Packs, PackError> {
-        let mut lookup: HashMap<String, Kw> = HashMap::new();
+        let mut lookup: HashMap<String, (Kw, Option<Position>)> = HashMap::new();
         let mut owner: HashMap<String, String> = HashMap::new();
         for p in &packs {
             for (&kw, w) in &p.words {
+                let pos = p.positions.get(&kw).copied();
                 if let Some(&prev) = lookup.get(w) {
-                    if prev != kw {
+                    if prev != (kw, pos) {
                         return Err(PackError(format!(
-                            "word {w:?} means {prev:?} in pack '{}' but {kw:?} in pack '{}'",
-                            owner[w], p.code
+                            "word {w:?} means {prev:?} in pack '{}' but {:?} in pack '{}'",
+                            owner[w],
+                            (kw, pos),
+                            p.code
                         )));
                     }
                 }
-                lookup.insert(w.clone(), kw);
+                lookup.insert(w.clone(), (kw, pos));
                 owner.entry(w.clone()).or_insert_with(|| p.code.clone());
             }
         }
@@ -255,7 +258,12 @@ impl Packs {
     }
 
     pub fn keyword(&self, word: &str) -> Option<Kw> {
-        self.lookup.get(word).copied()
+        self.lookup.get(word).map(|&(kw, _)| kw)
+    }
+
+    /// Word order of this particular keyword word, for statement keywords.
+    pub fn keyword_position(&self, word: &str) -> Option<Position> {
+        self.lookup.get(word).and_then(|&(_, pos)| pos)
     }
 
     pub fn get(&self, code: &str) -> Option<&Pack> {
