@@ -24,7 +24,7 @@ USAGE:
     omni c     <file> [-o out.c]      translate to C
     omni build <file> [-o program]    compile to a native executable (needs gcc or clang)
     omni packs                        list language packs and their keywords
-    omni translit --to <hi|ta> <text> romanized typing: "agar" -> "अगर"
+    omni translit --to <hi|ta> <text> romanized typing: agar -> अगर
 
 OPTIONS:
     --lang <en|hi|ta>     language for errors and printed output (default: $OMNI_LANG or en)
