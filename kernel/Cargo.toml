@@ -1,0 +1,29 @@
+[package]
+name = "omni-kernel"
+description = "Minimal RISC-V kernel whose panic screen speaks the user's language"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+# A separate workspace: the kernel is built for riscv64gc-unknown-none-elf.
+[workspace]
+
+[[bin]]
+name = "omni-kernel"
+test = false
+bench = false
+
+[dependencies]
+fdt = "0.1"
+
+[build-dependencies]
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
+opt-level = "s"
+debug = true

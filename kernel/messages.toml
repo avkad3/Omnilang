@@ -1,0 +1,79 @@
+# Messages the kernel can show before any filesystem or font engine exists.
+# The build script turns these into UTF-8 strings (for the serial console)
+# and pre-shaped bitmaps (for the framebuffer panic screen).
+# Translations should be reviewed by native speakers; corrections welcome.
+
+[boot]
+en = "OmniLang kernel started"
+hi = "ओम्नीलैंग कर्नेल शुरू हुआ"
+ta = "ஓம்னிலாங் கர்னல் தொடங்கியது"
+
+[title]
+en = "Kernel panic"
+hi = "कर्नेल में गंभीर त्रुटि"
+ta = "கர்னலில் கடும் பிழை"
+
+[subtitle]
+en = "The system was stopped to protect your data."
+hi = "आपके डेटा की सुरक्षा के लिए सिस्टम रोक दिया गया।"
+ta = "உங்கள் தரவைப் பாதுகாக்க கணினி நிறுத்தப்பட்டது."
+
+[cause_label]
+en = "Cause:"
+hi = "कारण:"
+ta = "காரணம்:"
+
+[pc_label]
+en = "Instruction address:"
+hi = "निर्देश का पता:"
+ta = "கட்டளை முகவரி:"
+
+[addr_label]
+en = "Faulting address:"
+hi = "त्रुटि वाला पता:"
+ta = "பிழையான முகவரி:"
+
+[ticks_label]
+en = "Uptime (timer ticks):"
+hi = "चलने का समय (टिक):"
+ta = "இயங்கிய நேரம் (டிக்):"
+
+[footer]
+en = "Please restart the device."
+hi = "कृपया डिवाइस फिर से चालू करें।"
+ta = "தயவுசெய்து சாதனத்தை மீண்டும் தொடங்கவும்."
+
+[cause_illegal_instruction]
+en = "Illegal instruction"
+hi = "अवैध निर्देश"
+ta = "செல்லாத கட்டளை"
+
+[cause_load_access]
+en = "Invalid memory read"
+hi = "मेमोरी से अमान्य पठन"
+ta = "செல்லாத நினைவக வாசிப்பு"
+
+[cause_store_access]
+en = "Invalid memory write"
+hi = "मेमोरी में अमान्य लेखन"
+ta = "செல்லாத நினைவக எழுதுதல்"
+
+[cause_misaligned]
+en = "Misaligned memory access"
+hi = "असंरेखित मेमोरी पहुँच"
+ta = "சீரற்ற நினைவக அணுகல்"
+
+[cause_page_fault]
+en = "Page fault: address is not mapped"
+hi = "पेज त्रुटि: पता मैप नहीं है"
+ta = "பக்கப் பிழை: முகவரி வரைபடமாக்கப்படவில்லை"
+
+[cause_kernel_bug]
+en = "Kernel bug (a check failed)"
+hi = "कर्नेल में बग (एक जाँच विफल हुई)"
+ta = "கர்னல் குறைபாடு (ஒரு சோதனை தோல்வியடைந்தது)"
+
+[cause_unknown]
+en = "Unexpected exception"
+hi = "अप्रत्याशित अपवाद"
+ta = "எதிர்பாராத விதிவிலக்கு"
