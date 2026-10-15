@@ -1,0 +1,221 @@
+# Diagnostic messages, one translation per language.
+# Placeholders like {name} are filled in by the compiler.
+# Translations should be reviewed by native speakers; corrections welcome.
+
+["label.error"]
+en = "error"
+hi = "त्रुटि"
+ta = "பிழை"
+
+["label.warning"]
+en = "warning"
+hi = "चेतावनी"
+ta = "எச்சரிக்கை"
+
+# ---- source security (E00xx) ----
+
+[E0001]
+en = "bidirectional control character {cp} can make code look different from how it runs"
+hi = "द्विदिशीय नियंत्रण वर्ण {cp} कोड को चलने के तरीके से अलग दिखा सकता है"
+ta = "இருதிசை கட்டுப்பாட்டு எழுத்து {cp} நிரல் இயங்குவதிலிருந்து வேறாகத் தோன்றச் செய்யலாம்"
+
+[E0002]
+en = "invisible character {cp} is not allowed in source code"
+hi = "अदृश्य वर्ण {cp} स्रोत कोड में अनुमत नहीं है"
+ta = "கண்ணுக்குத் தெரியாத எழுத்து {cp} நிரலில் அனுமதிக்கப்படவில்லை"
+
+[E0003]
+en = "zero-width joiner {cp} may only follow a virama (halant) inside a name"
+hi = "शून्य-चौड़ाई योजक {cp} नाम में केवल हलंत के बाद आ सकता है"
+ta = "பூஜ்ஜிய-அகல இணைப்பான் {cp} பெயரில் புள்ளிக்கு (விராமம்) பின் மட்டுமே வரலாம்"
+
+[E0004]
+en = "name '{name}' mixes scripts ({scripts}); use a single script per name"
+hi = "नाम '{name}' में कई लिपियाँ मिली हैं ({scripts}); हर नाम में एक ही लिपि रखें"
+ta = "'{name}' என்ற பெயரில் பல எழுத்துமுறைகள் கலந்துள்ளன ({scripts}); ஒரு பெயருக்கு ஒரே எழுத்துமுறையைப் பயன்படுத்தவும்"
+
+[W0005]
+en = "'{name}' looks confusingly similar to '{other}'"
+hi = "'{name}' देखने में '{other}' जैसा लगता है, भ्रम हो सकता है"
+ta = "'{name}' என்பது '{other}' போலவே தோன்றுகிறது; குழப்பம் ஏற்படலாம்"
+
+[W0006]
+en = "'{name}' looks like the keyword '{keyword}' but is a different word"
+hi = "'{name}' कीवर्ड '{keyword}' जैसा दिखता है, पर अलग शब्द है"
+ta = "'{name}' என்பது '{keyword}' என்ற முக்கியச்சொல் போலத் தோன்றுகிறது, ஆனால் வேறு சொல்"
+
+# ---- lexing (E01xx) ----
+
+[E0101]
+en = "unexpected character '{ch}'"
+hi = "अनपेक्षित वर्ण '{ch}'"
+ta = "எதிர்பாராத எழுத்து '{ch}'"
+
+[E0102]
+en = "string is not closed; add a closing \""
+hi = "स्ट्रिंग बंद नहीं हुई; अंत में \" लगाएँ"
+ta = "சரம் மூடப்படவில்லை; இறுதியில் \" சேர்க்கவும்"
+
+[E0103]
+en = "unknown escape sequence '\\{ch}'"
+hi = "अज्ञात एस्केप अनुक्रम '\\{ch}'"
+ta = "தெரியாத தப்பித்தல் வரிசை '\\{ch}'"
+
+[E0104]
+en = "number '{text}' is too large (maximum is 9223372036854775807)"
+hi = "संख्या '{text}' बहुत बड़ी है (अधिकतम 9223372036854775807)"
+ta = "எண் '{text}' மிகப் பெரியது (அதிகபட்சம் 9223372036854775807)"
+
+[E0105]
+en = "number '{text}' mixes digits from different scripts"
+hi = "संख्या '{text}' में अलग-अलग लिपियों के अंक मिले हैं"
+ta = "எண் '{text}' இல் வெவ்வேறு எழுத்துமுறை இலக்கங்கள் கலந்துள்ளன"
+
+# ---- parsing (E02xx syntax) ----
+
+[E0200]
+en = "expected {expected}, found {found}"
+hi = "{expected} अपेक्षित था, पर {found} मिला"
+ta = "{expected} எதிர்பார்க்கப்பட்டது, ஆனால் {found} கிடைத்தது"
+
+# ---- names and types (E03xx) ----
+
+[E0201]
+en = "'{name}' is not defined"
+hi = "'{name}' परिभाषित नहीं है"
+ta = "'{name}' வரையறுக்கப்படவில்லை"
+
+[E0301]
+en = "'{name}' is already defined in this scope"
+hi = "'{name}' इस दायरे में पहले से परिभाषित है"
+ta = "'{name}' இந்த வரம்பில் ஏற்கனவே வரையறுக்கப்பட்டுள்ளது"
+
+[E0302]
+en = "type mismatch: expected {expected}, found {found}"
+hi = "प्रकार मेल नहीं खाता: {expected} अपेक्षित था, {found} मिला"
+ta = "வகை பொருந்தவில்லை: {expected} எதிர்பார்க்கப்பட்டது, {found} கிடைத்தது"
+
+[E0303]
+en = "'{name}' is fixed and cannot be changed; declare it with a mutable binding instead"
+hi = "'{name}' स्थिर है, बदला नहीं जा सकता; इसे परिवर्तनीय (चर) बनाकर घोषित करें"
+ta = "'{name}' நிலையானது, மாற்ற முடியாது; அதை மாறியாக அறிவிக்கவும்"
+
+[E0304]
+en = "'{name}' expects {expected} arguments, but {found} were given"
+hi = "'{name}' को {expected} तर्क चाहिए, पर {found} दिए गए"
+ta = "'{name}' க்கு {expected} உள்ளீடுகள் தேவை, ஆனால் {found} கொடுக்கப்பட்டன"
+
+[E0305]
+en = "'{name}' is not a function"
+hi = "'{name}' कोई कार्य (फ़ंक्शन) नहीं है"
+ta = "'{name}' ஒரு செயல்பாடு அல்ல"
+
+[E0306]
+en = "operator '{op}' cannot be used with {left} and {right}"
+hi = "संक्रिया '{op}' को {left} और {right} के साथ उपयोग नहीं किया जा सकता"
+ta = "'{op}' செயற்குறியை {left} மற்றும் {right} உடன் பயன்படுத்த முடியாது"
+
+[E0307]
+en = "function '{name}' must return {expected} on every path"
+hi = "कार्य '{name}' को हर स्थिति में {expected} लौटाना चाहिए"
+ta = "'{name}' செயல்பாடு எல்லா வழிகளிலும் {expected} திருப்ப வேண்டும்"
+
+[E0308]
+en = "return outside of a function"
+hi = "कार्य के बाहर लौटाना संभव नहीं"
+ta = "செயல்பாட்டுக்கு வெளியே திருப்ப முடியாது"
+
+[E0309]
+en = "no entry point: define a function named {names}"
+hi = "प्रवेश बिंदु नहीं मिला: {names} नाम का कार्य बनाएँ"
+ta = "தொடக்கப் புள்ளி இல்லை: {names} என்ற பெயரில் செயல்பாட்டை வரையறுக்கவும்"
+
+[E0310]
+en = "more than one entry point: '{name}' and '{other}'"
+hi = "एक से अधिक प्रवेश बिंदु: '{name}' और '{other}'"
+ta = "ஒன்றுக்கு மேற்பட்ட தொடக்கப் புள்ளிகள்: '{name}' மற்றும் '{other}'"
+
+[E0311]
+en = "the entry point must take no arguments and return nothing"
+hi = "प्रवेश बिंदु कोई तर्क नहीं लेता और कुछ नहीं लौटाता"
+ta = "தொடக்கப் புள்ளி எந்த உள்ளீடும் பெறாது, எதையும் திருப்பாது"
+
+[E0312]
+en = "cannot print a value of type {found}"
+hi = "{found} प्रकार का मान छापा नहीं जा सकता"
+ta = "{found} வகை மதிப்பை அச்சிட முடியாது"
+
+[E0313]
+en = "names {name} and {other} refer to the same glossary term and clash"
+hi = "नाम {name} और {other} शब्दकोश में एक ही शब्द हैं, टकराव है"
+ta = "{name} மற்றும் {other} ஒரே சொற்களஞ்சியச் சொல்லைக் குறிக்கின்றன; மோதல்"
+
+# ---- runtime (E04xx) ----
+
+[E0401]
+en = "division by zero"
+hi = "शून्य से भाग"
+ta = "பூஜ்ஜியத்தால் வகுத்தல்"
+
+[E0402]
+en = "integer overflow"
+hi = "पूर्णांक सीमा से बाहर (ओवरफ़्लो)"
+ta = "முழுஎண் வரம்பு மீறல்"
+
+[E0403]
+en = "recursion too deep (more than {limit} nested calls)"
+hi = "पुनरावृत्ति बहुत गहरी (सीमा {limit} नेस्टेड कॉल)"
+ta = "மீள்வரவு மிக ஆழம் ({limit} க்கும் மேற்பட்ட உள்ளடுக்கு அழைப்புகள்)"
+
+# ---- nouns used inside other messages ----
+
+["what.eof"]
+en = "end of file"
+hi = "फ़ाइल का अंत"
+ta = "கோப்பின் முடிவு"
+
+["what.expr"]
+en = "an expression"
+hi = "एक व्यंजक"
+ta = "ஒரு கோவை"
+
+["what.name"]
+en = "a name"
+hi = "एक नाम"
+ta = "ஒரு பெயர்"
+
+["what.type"]
+en = "a type"
+hi = "एक प्रकार"
+ta = "ஒரு வகை"
+
+["what.item"]
+en = "a function definition"
+hi = "एक कार्य परिभाषा"
+ta = "ஒரு செயல்பாட்டு வரையறை"
+
+["what.stmt_end"]
+en = "end of statement"
+hi = "कथन का अंत"
+ta = "கூற்றின் முடிவு"
+
+["what.nothing"]
+en = "nothing"
+hi = "कुछ नहीं"
+ta = "ஒன்றுமில்லை"
+
+# Type names: must match the keyword packs (checked by a test).
+["type.int"]
+en = "int"
+hi = "पूर्णांक"
+ta = "முழுஎண்"
+
+["type.bool"]
+en = "bool"
+hi = "तार्किक"
+ta = "தருக்கம்"
+
+["type.str"]
+en = "str"
+hi = "पाठ"
+ta = "சரம்"

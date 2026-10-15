@@ -126,8 +126,8 @@ struct RawStatement {
     position: Position,
 }
 
-fn nfc(s: &str) -> String {
-    s.nfc().collect()
+fn normalize(s: &str) -> String {
+    s.nfkc().collect()
 }
 
 impl Pack {
@@ -145,7 +145,7 @@ impl Pack {
         for (kw, key) in Kw::REQUIRED {
             match keywords.remove(key) {
                 Some(w) => {
-                    words.insert(kw, nfc(w.trim()));
+                    words.insert(kw, normalize(w.trim()));
                 }
                 None if kw == Kw::Then => {}
                 None => return Err(err(format!("missing keywords.{key}"))),
@@ -161,7 +161,7 @@ impl Pack {
             let st = statements
                 .remove(key)
                 .ok_or_else(|| err(format!("missing statements.{key}")))?;
-            words.insert(kw, nfc(st.word.trim()));
+            words.insert(kw, normalize(st.word.trim()));
             positions.insert(kw, st.position);
         }
         if let Some(extra) = statements.keys().next() {
@@ -191,7 +191,7 @@ impl Pack {
             script: raw.pack.script,
             digits,
             terminator: raw.pack.terminator,
-            main: nfc(main.trim()),
+            main: normalize(main.trim()),
             words,
             positions,
         })
