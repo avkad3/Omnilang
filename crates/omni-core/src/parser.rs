@@ -364,9 +364,12 @@ impl<'a> Parser<'a> {
                 Ok(StmtKind::Return(value))
             }
             Kw::Print => {
-                let value = self.expr()?;
+                let mut values = vec![self.expr()?];
+                while self.eat(&Tok::Comma) {
+                    values.push(self.expr()?);
+                }
                 self.expect_terminator()?;
-                Ok(StmtKind::Print(value))
+                Ok(StmtKind::Print(values))
             }
             _ => unreachable!("not a statement keyword"),
         }
@@ -375,6 +378,27 @@ impl<'a> Parser<'a> {
     /// An expression has been parsed at the start of a statement: it is
     /// either the operand of a postfix keyword or a plain expression statement.
     fn after_expr(&mut self, expr: Expr) -> PResult<StmtKind> {
+        // `a, b छापो।` — a comma list is only valid before a postfix print.
+        if *self.peek() == Tok::Comma {
+            let comma = self.span();
+            let mut values = vec![expr];
+            while self.eat(&Tok::Comma) {
+                values.push(self.expr()?);
+            }
+            if *self.peek() == Tok::Kw(Kw::Print)
+                && self.keyword_word(self.span()).1 == Some(Position::Postfix)
+            {
+                self.bump();
+                self.expect_terminator()?;
+                return Ok(StmtKind::Print(values));
+            }
+            self.diags.push(
+                Diagnostic::error("E0200", comma)
+                    .arg("expected", "@what.stmt_end")
+                    .arg("found", "','"),
+            );
+            return Err(Reported);
+        }
         if let Tok::Kw(k @ (Kw::If | Kw::While | Kw::Return | Kw::Print)) = *self.peek() {
             let span = self.span();
             let (word, pos) = self.keyword_word(span);
@@ -394,7 +418,7 @@ impl<'a> Parser<'a> {
                 }
                 _ => {
                     self.expect_terminator()?;
-                    Ok(StmtKind::Print(expr))
+                    Ok(StmtKind::Print(vec![expr]))
                 }
             };
         }
@@ -593,7 +617,7 @@ mod tests {
         assert!(matches!(body(&p)[0].kind, StmtKind::Return(Some(_))));
         let p = parse_ok("कार्य मुख्य() { \"नमस्ते\" छापो। }");
         assert!(
-            matches!(&body(&p)[0].kind, StmtKind::Print(e) if e.kind == ExprKind::Str("नमस्ते".into()))
+            matches!(&body(&p)[0].kind, StmtKind::Print(v) if v[0].kind == ExprKind::Str("नमस्ते".into()))
         );
     }
 
@@ -636,11 +660,11 @@ mod tests {
     #[test]
     fn precedence_and_word_operators() {
         let p = parse_ok("fn main() { print 1 + 2 * 3 == 7 and not false; }");
-        let StmtKind::Print(e) = &body(&p)[0].kind else {
+        let StmtKind::Print(v) = &body(&p)[0].kind else {
             panic!()
         };
         // (((1 + (2*3)) == 7) and (not false))
-        assert!(matches!(&e.kind, ExprKind::Binary(BinOp::And, l, _)
+        assert!(matches!(&v[0].kind, ExprKind::Binary(BinOp::And, l, _)
             if matches!(&l.kind, ExprKind::Binary(BinOp::Eq, ..))));
     }
 
@@ -654,6 +678,15 @@ mod tests {
             d[0].message("en")
         );
         assert_eq!(codes("fn main() { 5 return; }"), ["E0203"]);
+    }
+
+    #[test]
+    fn print_takes_several_values_in_either_order() {
+        let p = parse_ok("fn main() { print \"sum:\", 1 + 2; }");
+        assert!(matches!(&body(&p)[0].kind, StmtKind::Print(v) if v.len() == 2));
+        let p = parse_ok("कार्य मुख्य() { \"योग:\", 1 + 2 छापो। }");
+        assert!(matches!(&body(&p)[0].kind, StmtKind::Print(v) if v.len() == 2));
+        assert_eq!(codes("fn main() { 1, 2; }"), ["E0200"]);
     }
 
     #[test]

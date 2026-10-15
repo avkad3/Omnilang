@@ -94,7 +94,8 @@ pub enum StmtKind {
         body: Block,
     },
     Return(Option<Expr>),
-    Print(Expr),
+    /// Values are printed on one line, separated by spaces.
+    Print(Vec<Expr>),
     Expr(Expr),
 }
 

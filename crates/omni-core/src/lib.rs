@@ -4,7 +4,9 @@
 //! pack lowers to the same language-neutral syntax tree.
 
 pub mod ast;
+pub mod check;
 pub mod diag;
+pub mod glossary;
 pub mod lexer;
 pub mod pack;
 pub mod parser;
