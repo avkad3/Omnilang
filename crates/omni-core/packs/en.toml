@@ -1,0 +1,29 @@
+# English language pack: the reference pack every other pack mirrors.
+[pack]
+code = "en"
+name = "English"
+script = "Latin"
+terminator = ";"
+
+[keywords]
+fn = "fn"
+let = "let"
+var = "var"
+else = "else"
+true = "true"
+false = "false"
+and = "and"
+or = "or"
+not = "not"
+int = "int"
+bool = "bool"
+str = "str"
+main = "main"
+
+# Statement keywords carry a word order. "prefix" puts the keyword before
+# its operand (`if x > 1 { }`), "postfix" after it (`x > 1 என்றால் { }`).
+[statements]
+if = { word = "if", position = "prefix" }
+while = { word = "while", position = "prefix" }
+return = { word = "return", position = "prefix" }
+print = { word = "print", position = "prefix" }

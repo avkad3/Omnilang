@@ -1,0 +1,15 @@
+[package]
+name = "omni-core"
+description = "OmniLang compiler core: multilingual lexer, parser, checker, interpreter and C backend"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+unicode-normalization = "0.1"
+unicode-security = "0.1"
+unicode-script = "0.5"
+unicode-ident = "1"
+unicode-segmentation = "1"

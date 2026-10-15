@@ -1,0 +1,33 @@
+# Hindi language pack (Devanagari).
+#
+# Hindi is verb-final (subject-object-verb), so the "do something to a
+# value" statements put the verb last:  `क + ख लौटाओ।` = "return a + b".
+# Conditions keep the familiar `अगर … तो …` ("if … then …") shape.
+[pack]
+code = "hi"
+name = "हिन्दी"
+script = "Devanagari"
+digits = "०१२३४५६७८९"
+terminator = "।"          # the danda, Hindi's full stop; `;` also works
+
+[keywords]
+fn = "कार्य"              # task / function
+let = "स्थिर"             # fixed (immutable binding)
+var = "चर"                # variable (as in algebra)
+else = "वरना"             # otherwise
+then = "तो"               # optional, after an `अगर` condition
+true = "सत्य"
+false = "असत्य"
+and = "और"
+or = "या"
+not = "नहीं"
+int = "पूर्णांक"           # integer
+bool = "तार्किक"          # logical
+str = "पाठ"               # text
+main = "मुख्य"
+
+[statements]
+if = { word = "अगर", position = "prefix" }
+while = { word = "जबतक", position = "prefix" }
+return = { word = "लौटाओ", position = "postfix" }
+print = { word = "छापो", position = "postfix" }

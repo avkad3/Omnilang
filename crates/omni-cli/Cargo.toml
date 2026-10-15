@@ -1,0 +1,13 @@
+[package]
+name = "omni"
+description = "OmniLang command-line tool"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "omni"
+path = "src/main.rs"
+
+[dependencies]
+omni-core = { path = "../omni-core" }
