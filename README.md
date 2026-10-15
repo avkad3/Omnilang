@@ -2,7 +2,7 @@
 
 ![ci](https://github.com/avkad3/Omnilang/actions/workflows/ci.yml/badge.svg)
 
-**A programming language you can write in your own language.** OmniLang source can use English, Hindi (Devanagari) or Tamil keywords, or a mix of them in one file. Every form compiles to the same program, and any program can be shown in any of the languages.
+**A programming language and a small kernel that speak your language.** OmniLang source can use English, Hindi (Devanagari) or Tamil keywords, or a mix of them in one file. Every form compiles to the same program, and any program can be shown in any of the languages.
 
 The same function in three languages:
 
@@ -32,7 +32,7 @@ Most people learning to program in India learn the ideas in their own language a
 | Keywords are a few dozen words; real programs have hundreds of names | **Glossaries:** one file lists `total` / `कुल` / `மொத்தம்` as the same name. Different team members can use different spellings for the same variable. |
 | Error messages are the real language barrier | **Errors in your language:** every compiler and runtime error comes in English, Hindi or Tamil, including word-order hints like ``'लौटाओ' … इसे अंत में लिखें, जैसे `x लौटाओ` ``. |
 | Mixing scripts opens security holes | **Lookalike and hidden-character checks:** see [Security](#security). |
-| Localized languages are toys | OmniLang compiles to **readable C**, has static types and overflow-checked arithmetic, and is being built toward a RISC-V kernel (see [Roadmap](#roadmap)). |
+| Localized languages are toys | OmniLang compiles to **readable C** and has static types and overflow-checked arithmetic. A **RISC-V kernel** shows its crash screens in Hindi and Tamil. |
 
 ## Quick start
 
@@ -122,6 +122,42 @@ A language that accepts many scripts must prevent code that *looks* different fr
 - **Lookalikes:** two names that render alike, or a name like `retum` that imitates the keyword `return`, are reported.
 - **Normalization:** names are NFKC-normalized, as in Python. Canonically equivalent spellings, such as `क़` written as one or two code points, and fullwidth letters therefore mean exactly what they look like.
 
+## The kernel: crash screens in your language
+
+[`kernel/`](kernel/) is a small RISC-V kernel for QEMU's `virt` machine. When something goes wrong, it explains the problem in the user's language: on the serial console and on a graphical panic screen drawn before any filesystem, font engine or GUI exists.
+
+| Hindi: write to read-only memory | Tamil: page fault |
+|---|---|
+| ![Hindi panic screen](docs/panic-hi-readonly.png) | ![Tamil panic screen](docs/panic-ta-load.png) |
+
+**Text shaping at build time.** Devanagari and Tamil can't be drawn letter by letter: they need *shaping*. Devanagari has conjuncts like `क्ष`, the reph in `कर्नेल` and vowel signs that move, and Tamil has two-part vowels like `தொ`. A kernel can't run a shaping engine at the moment it crashes, so [`kernel/build.rs`](kernel/build.rs) does the work in advance:
+
+1. It shapes every message in [`kernel/messages.toml`](kernel/messages.toml) with [rustybuzz](https://github.com/RazrFalcon/rustybuzz) (HarfBuzz's shaping in Rust), using the Noto Sans fonts.
+2. It falls back to the Latin font for punctuation the script fonts lack.
+3. It rasterizes the result with `ab_glyph` into run-length-compressed bitmaps: 414 KiB of text becomes 166 KiB.
+
+The kernel only blends finished bitmaps onto the framebuffer. Numbers use per-language digit glyphs (`३`, `௩`) and addresses use a monospace atlas, because those are the only dynamic text.
+
+**What the kernel does:**
+
+- boots under OpenSBI;
+- prints UTF-8 to the serial port;
+- reads the boot language from the device tree;
+- handles traps and a 10 Hz timer;
+- turns on **Sv39 paging**, with code read/execute only, read-only data read-only, and address 0 unmapped;
+- configures QEMU's `ramfb` framebuffer through `fw_cfg` DMA.
+
+CPU exceptions and Rust panics share one reporting path. In the trap handler, a write to a mapped page that isn't writable is reported as "write to read-only memory" rather than a generic page fault.
+
+```bash
+rustup target add riscv64gc-unknown-none-elf     # once; QEMU must be installed
+cargo xtask run --lang hi --demo readonly         # boots in a QEMU window
+cargo xtask screenshot --lang ta --demo load      # saves docs/panic-ta-load.png
+cargo xtask test                                  # 18 boots: 3 languages × (5 faults + clean)
+```
+
+The `--demo` values are `illegal`, `load` (null pointer), `readonly`, `misaligned` (unaligned atomic) and `panic` (a failed Rust assertion). `cargo xtask test` checks each boot's exit status and that the serial report names the right cause in the right language. It runs in CI, and the CI run also uploads screenshots of the panic screens.
+
 ## How it works
 
 ```
@@ -142,6 +178,10 @@ crates/omni-core/packs/     en.toml, hi.toml, ta.toml
 crates/omni-core/messages.toml   every diagnostic in every language
 crates/omni-cli/    the `omni` binary and end-to-end tests
 examples/           programs in each language, with recorded output
+kernel/             RISC-V kernel: boot, traps, paging, ramfb, panic screen
+kernel/build.rs     build-time shaping and rasterization of kernel messages
+kernel/fonts/       Noto Sans (SIL Open Font License)
+xtask/              cargo xtask: build, run, screenshot and test the kernel in QEMU
 ```
 
 ## Testing
@@ -152,12 +192,13 @@ examples/           programs in each language, with recorded output
 2. still produces it after being translated into each of the three languages;
 3. produces the same bytes as a native binary built with gcc or clang.
 
-CI runs all of this on Linux and Windows.
+CI runs all of this on Linux and Windows, plus the kernel boot matrix on Linux with QEMU.
 
 ## Roadmap
 
 - [x] **Phase 1: multilingual compiler.** Language packs, word-order-aware parser, glossaries, multilingual views, localized errors, interpreter and C backend.
-- [ ] **Phase 2: bare-metal RISC-V.** A minimal kernel in QEMU whose panic screen shows the error in Hindi or Tamil, using text shaped at build time.
+- [x] **Phase 2: bare-metal RISC-V.** A kernel in QEMU with traps, a timer and Sv39 paging, whose panic screen shows the error in Hindi, Tamil or English using text shaped at build time.
+- [ ] **Next for the kernel:** isolated drivers that restart after a crash (MINIX-style) instead of halting the whole system, and running compiled OmniLang programs on the kernel.
 - [ ] **Phase 3: editor support.** A language server and VS Code extension with transliteration input (`agar` → `अगर`).
 - [ ] **Phase 4: offline assistant.** A small local model that explains errors in your language and drafts code that the compiler then checks.
 - [ ] More languages (Marathi, Bengali, Arabic…) and a browser playground (WebAssembly).
@@ -167,6 +208,8 @@ CI runs all of this on Linux and Windows.
 - The Hindi and Tamil keywords and messages need review by native speakers and teachers. They live in data files ([packs](crates/omni-core/packs/), [messages](crates/omni-core/messages.toml)), so corrections don't require touching the compiler.
 - The C backend relies on GCC or Clang overflow builtins, so MSVC isn't supported yet.
 - Deep recursion is limited to 5,000 calls in the interpreter. Compiled programs use the native stack.
+- The kernel targets QEMU `virt` only. It runs on one hart, and its panic screen is fixed at 800×600.
+- Kernel messages are pre-rendered, so changing one means rebuilding the kernel. That's the price of having no font engine at crash time.
 
 ## License
 
