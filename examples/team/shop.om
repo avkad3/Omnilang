@@ -1,0 +1,15 @@
+// One program, three authors: each wrote their part in their own language.
+// The glossary (omni.glossary.toml) makes कुल, total and மொத்தம் one name.
+
+// Written in Tamil: the bill for one item.
+செயல்பாடு கட்டணம்(விலை: முழுஎண், அளவு: முழுஎண்) -> முழுஎண் {
+    விலை * அளவு திருப்பு;
+}
+
+// Written in Hindi and English.
+fn main() {
+    चर कुल = 0।
+    total = total + bill(40, 3);
+    कुल = कुल + बिल(25, 2)।
+    "Total:", மொத்தம் அச்சிடு;
+}

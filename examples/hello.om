@@ -1,0 +1,4 @@
+// The same program can be written in any language pack.
+fn main() {
+    print "Hello, world!";
+}

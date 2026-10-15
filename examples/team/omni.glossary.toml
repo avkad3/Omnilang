@@ -1,0 +1,22 @@
+# Names shared by a team that writes in three languages.
+# Every spelling of a term is the same variable or function.
+
+[[term]]
+en = "total"
+hi = "कुल"
+ta = "மொத்தம்"
+
+[[term]]
+en = "price"
+hi = "मूल्य"
+ta = "விலை"
+
+[[term]]
+en = "quantity"
+hi = "मात्रा"
+ta = "அளவு"
+
+[[term]]
+en = "bill"
+hi = "बिल"
+ta = "கட்டணம்"
